@@ -16,7 +16,7 @@ npm run dev                 # Vite on :5173 (proxies /api) + API on :8787
 Open http://localhost:5173. Other commands: `npm test` (server tests), `npm run build`, `npm start` (production: serves `dist/` + API on one port), `npm run lint:syntax` (needs `esbuild`; `ESBUILD=/path/to/esbuild`).
 
 ## Routes
-`/` · `/shop` · `/category/:categorySlug` (earrings, necklaces, rings, bracelets, anklets) · `/product/:productId` (e.g. `1129685-p02`) · `/cart` (bag + booking form) · `/booking-success/:reference?t=<token>` · `*` → 404. `/cart` and `/booking-success` are `noindex` and disallowed in robots.txt. Direct URLs/refresh work in production because the server falls back to `index.html`.
+`/` · `/products` (with `/shop` redirect) · `/category/:categorySlug` (earrings, necklaces, rings, bracelets, anklets) · `/product/:productId` (e.g. `1129685-p02`) · `/cart` (bag + booking form) · `/booking-success/:reference?t=<token>` · `*` → 404. `/cart` and `/booking-success` are `noindex` and disallowed in robots.txt. Direct URLs/refresh work in production because the server falls back to `index.html`.
 
 API: `POST /api/bookings`, `GET /api/bookings/:ref?token=…` (token is returned only to the submitter), `GET /api/health`. There is deliberately **no list endpoint**.
 
@@ -66,7 +66,7 @@ See `.env.example` (documented). Public: `VITE_SITE_URL`, `VITE_INSTAGRAM_URL`, 
 **Run and passed**
 * `npm test` — 8/8 server tests: catalogue integrity (63 unique ids); Indian mobile normalisation; booking persisted with **server-recomputed totals** (client-sent prices ignored); validation (bad phone, missing name, empty bag, unknown product, qty 0/-3/1.5, delivery without address); duplicate/concurrent submit ⇒ 1 row, 1 WhatsApp call; WhatsApp 401 ⇒ booking still saved, status `failed`, error stored, later retry ⇒ `sent`, exactly one send; token-gated retrieval and no list endpoint; rate limit (429) and 413 on oversized body.
 * All 20+ source files parse (esbuild); the app bundles with every local import/export resolving.
-* Server-side-render smoke test of 9 routes with stand-ins for `react-router-dom`/`lucide-react` (React 19.2): `/` (8 featured cards), `/shop` (63), `/category/earrings` (16), `/product/1129685-p02`, `/cart` (restored from storage, invalid stored id dropped), booking-success, plus unknown category/product/route ⇒ 404. No React warnings after fixing two attribute issues the test found.
+* Server-side-render smoke test of 9 routes with stand-ins for `react-router-dom`/`lucide-react` (React 19.2): `/` (8 featured cards), `/products` (63), `/category/earrings` (16), `/product/1129685-p02`, `/cart` (restored from storage, invalid stored id dropped), booking-success, plus unknown category/product/route ⇒ 404. No React warnings after fixing two attribute issues the test found.
 
 **NOT done — I could not do these here (no network, so no `npm install`, no browser)**
 * `npm install` / `vite build` of the frontend, Tailwind class compilation — **not run**; expect to fix small issues on first build.
@@ -77,4 +77,5 @@ See `.env.example` (documented). Public: `VITE_SITE_URL`, `VITE_INSTAGRAM_URL`, 
 
 ## Known differences / open items
 Design tokens and fonts approximated · category-card images use catalogue photos (reference's choice unverified) · bag page and success page are built from the brief (reference `/cart` couldn't be inspected) · duplicate codes & price outliers in the catalogue need your confirmation · Instagram tiles are catalogue photos linking to the profile (as on the reference) · external things still needed: WhatsApp Business verification + sender number + template + token, a host with persistent storage, a domain.
+# shriva-jewels-website
 # shriva-jewels-website
