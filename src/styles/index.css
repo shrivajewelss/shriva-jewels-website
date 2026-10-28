@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Design tokens ------------------------------------------------------------------
+   Derived from the supplied logo (maroon ink on warm cream). The live site's computed
+   styles could not be measured without a browser — see docs/REFERENCE_AUDIT.md. Adjust
+   here and the whole site follows. */
+:root {
+  --cream-rgb: 250 245 238;
+  --sand-rgb: 241 230 213;
+  --maroon-rgb: 98 25 13;
+  --maroon-deep-rgb: 74 17 9;
+  --ink-rgb: 58 38 32;
+  --muted-rgb: 125 102 92;
+  --line-rgb: 228 213 192;
+
+  --cream: #faf5ee;
+  --sand: #f1e6d5;
+  --maroon: #62190d;
+  --maroon-deep: #4a1109;
+  --ink: #3a2620;
+  --muted: #7d665c;
+  --line: #e4d5c0;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-cream font-sans text-ink antialiased; overflow-x: hidden; }
+  h1, h2, h3 { @apply font-display text-maroon; }
+  :focus-visible { outline: 2px solid var(--maroon); outline-offset: 3px; }
+  .on-dark :focus-visible { outline-color: var(--cream); }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-page px-5 sm:px-8; }
+  .eyebrow { @apply text-xs font-medium uppercase tracking-[0.22em] text-muted; }
+  .btn { @apply inline-flex h-12 items-center justify-center gap-2 rounded-full border px-7 text-sm font-medium tracking-wide transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply border-maroon bg-maroon text-cream hover:bg-maroon-deep; }
+  .btn-outline { @apply border-maroon bg-transparent text-maroon hover:bg-maroon hover:text-cream; }
+  .field { @apply h-12 w-full rounded-lg border border-line bg-white px-4 text-sm text-ink placeholder:text-muted/70 focus:border-maroon; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
