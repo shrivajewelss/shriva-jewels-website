@@ -3,8 +3,3 @@ dist
 .env
 .env.*
 !.env.example
-data/
-*.db
-*.db-wal
-*.db-shm
-.DS_Store
