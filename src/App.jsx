@@ -35,6 +35,7 @@ export default function App() {
           <Route path="/category/:categorySlug" element={<CategoryPage />} />
           <Route path="/product/:productId" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<Navigate to="/cart" replace />} />
           <Route path="/booking-success/:bookingReference" element={<BookingSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
