@@ -79,3 +79,4 @@ See `.env.example` (documented). Public: `VITE_SITE_URL`, `VITE_INSTAGRAM_URL`, 
 Design tokens and fonts approximated · category-card images use catalogue photos (reference's choice unverified) · bag page and success page are built from the brief (reference `/cart` couldn't be inspected) · duplicate codes & price outliers in the catalogue need your confirmation · Instagram tiles are catalogue photos linking to the profile (as on the reference) · external things still needed: WhatsApp Business verification + sender number + template + token, a host with persistent storage, a domain.
 # shriva-jewels-website
 # shriva-jewels-website
+# shriva-jewels-website
