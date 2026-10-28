@@ -33,7 +33,7 @@ export default function ProductPage() {
         <Link to={`/category/${cat.slug}`} className="hover:text-maroon">{cat.name}</Link>
       </nav>
       <div className="mt-6 grid gap-10 md:grid-cols-2 lg:gap-16">
-        <img src={product.image} alt={`${product.name} — Shriva Jewels`} width="800" height="1067" fetchPriority="high" className="aspect-[3/4] w-full rounded-lg bg-sand object-cover" />
+        <img src={`https://shriva-jewels.vercel.app${product.image}`} alt={`${product.name} — Shriva Jewels`} width="800" height="1067" fetchPriority="high" className="aspect-[3/4] w-full rounded-lg bg-sand object-cover" />
         <div className="md:pt-6">
           <Link to={`/category/${cat.slug}`} className="eyebrow hover:text-maroon">{cat.name}</Link>
           <h1 className="mt-2 text-4xl sm:text-5xl">{product.name}</h1>

@@ -9,7 +9,7 @@ export default function CartItem({ line }) {
   const { product, quantity } = line;
   return (
     <li className="flex gap-4 border-b border-line py-5">
-      <Link to={`/product/${product.id}`} className="shrink-0"><img src={product.image} alt={product.name} width="96" height="128" loading="lazy" className="h-28 w-[84px] rounded-md bg-sand object-cover" /></Link>
+      <Link to={`/product/${product.id}`} className="shrink-0"><img src={`https://shriva-jewels.vercel.app${product.image}`} alt={product.name} width="96" height="128" loading="lazy" className="h-28 w-[84px] rounded-md bg-sand object-cover" /></Link>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex justify-between gap-3">
           <div className="min-w-0">

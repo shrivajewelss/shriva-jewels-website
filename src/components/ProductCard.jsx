@@ -20,7 +20,7 @@ export default function ProductCard({ product, priority = false }) {
   return (
     <article className="group flex flex-col">
       <Link to={href} className="block overflow-hidden rounded-lg bg-sand" tabIndex={-1} aria-hidden="true">
-        <img src={product.image} alt="" width="800" height="1067" loading={priority ? "eager" : "lazy"} decoding="async"
+        <img src={`https://shriva-jewels.vercel.app${product.image}`} alt={product.name} width="800" height="1067" loading={priority ? "eager" : "lazy"} decoding="async"
           className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-105" />
       </Link>
       <div className="mt-3 flex flex-1 flex-col">
