@@ -43,7 +43,7 @@ export default function BookingSuccess() {
       <p className="mt-6 rounded-lg bg-sand p-4 text-sm">Booking reference <strong className="ml-1 text-base tracking-wider text-maroon">{b.reference}</strong></p>
       <ul className="mt-6 divide-y divide-line border-y border-line text-sm">
         {b.items.map((i) => (
-          <li key={i.id} className="flex justify-between gap-4 py-3"><span>{i.name} <span className="text-muted">· Code {i.code} · {formatPrice(i.unitPrice)} × {i.quantity}</span></span><span>{formatPrice(i.lineTotal)}</span></li>
+          <li key={i.id} className="flex justify-between gap-4 py-3"><span>{i.name} <span className="text-muted">{i.code ? `· Code ${i.code} ` : ""}· {formatPrice(i.unitPrice)} × {i.quantity}</span></span><span>{formatPrice(i.lineTotal)}</span></li>
         ))}
       </ul>
       <p className="mt-4 flex justify-between font-medium"><span>Subtotal</span><span className="text-maroon">{formatPrice(b.subtotal)}</span></p>

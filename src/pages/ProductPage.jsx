@@ -17,8 +17,8 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false);
 
   usePageMeta({
-    title: product ? `${product.name} (${product.code}) — Shriva Jewels` : "Page not found — Shriva Jewels",
-    description: product ? `${product.name}, product code ${product.code}, ${formatPrice(product.price)}. Book on WhatsApp.` : undefined,
+    title: product ? `${product.name}${product.code ? ` (${product.code})` : ""} — Shriva Jewels` : "Page not found — Shriva Jewels",
+    description: product ? `${product.name}${product.code ? `, product code ${product.code}` : ""}, ${formatPrice(product.price)}. Book on WhatsApp.` : undefined,
     path: product ? `/product/${product.id}` : undefined, noindex: !product,
   });
   if (!product) return <NotFound />;
@@ -33,11 +33,13 @@ export default function ProductPage() {
         <Link to={`/category/${cat.slug}`} className="hover:text-maroon">{cat.name}</Link>
       </nav>
       <div className="mt-6 grid gap-10 md:grid-cols-2 lg:gap-16">
-        <img src={`https://shriva-jewels.vercel.app${product.image}`} alt={`${product.name} — Shriva Jewels`} width="800" height="1067" fetchPriority="high" className="aspect-[3/4] w-full rounded-lg bg-sand object-cover" />
+        <img src={product.image} alt={`${product.name} — Shriva Jewels`} width="800" height="1067" fetchPriority="high" className="aspect-[3/4] w-full rounded-lg bg-sand object-cover" />
         <div className="md:pt-6">
           <Link to={`/category/${cat.slug}`} className="eyebrow hover:text-maroon">{cat.name}</Link>
           <h1 className="mt-2 text-4xl sm:text-5xl">{product.name}</h1>
-          <p className="mt-4 text-xs uppercase tracking-[0.18em] text-muted">Product code · {product.code}</p>
+          {product.code ? (
+            <p className="mt-4 text-xs uppercase tracking-[0.18em] text-muted">Product code · {product.code}</p>
+          ) : null}
           <p className="mt-4 font-display text-3xl text-maroon">{formatPrice(product.price)}</p>
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <QuantitySelector value={qty} onChange={setQty} />

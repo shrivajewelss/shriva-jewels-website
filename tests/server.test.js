@@ -19,9 +19,9 @@ const valid = (o = {}) => ({ name: "Asha Patel", mobile: "98765 43210", idempote
   items: [{ id: "1129685-p02", quantity: 2 }, { id: "1198987-p36", quantity: 1 }], ...o });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-test("catalogue integrity: 63 unique ids, positive integer prices", () => {
-  assert.equal(products.length, 63);
-  assert.equal(new Set(products.map((p) => p.id)).size, 63);
+test("catalogue integrity: 88 unique ids, positive integer prices", () => {
+  assert.equal(products.length, 88);
+  assert.equal(new Set(products.map((p) => p.id)).size, 88);
   assert.ok(products.every((p) => Number.isInteger(p.price) && p.price > 0));
 });
 

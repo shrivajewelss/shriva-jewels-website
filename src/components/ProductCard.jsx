@@ -20,11 +20,13 @@ export default function ProductCard({ product, priority = false }) {
   return (
     <article className="group flex flex-col">
       <Link to={href} className="block overflow-hidden rounded-lg bg-sand" tabIndex={-1} aria-hidden="true">
-        <img src={`https://shriva-jewels.vercel.app${product.image}`} alt={product.name} width="800" height="1067" loading={priority ? "eager" : "lazy"} decoding="async"
+        <img src={product.image} alt={product.name} width="800" height="1067" loading={priority ? "eager" : "lazy"} decoding="async"
           className="aspect-[3/4] w-full object-cover transition-transform duration-700 ease-[var(--ease)] group-hover:scale-105" />
       </Link>
       <div className="mt-3 flex flex-1 flex-col">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Code {product.code}</p>
+        {product.code ? (
+          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Code {product.code}</p>
+        ) : null}
         <h3 className="mt-1 font-display text-lg leading-snug text-ink">
           <Link to={href} className="hover:text-maroon">{product.name}<span className="sr-only">, view details</span></Link>
         </h3>

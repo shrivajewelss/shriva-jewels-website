@@ -5,6 +5,7 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import Home from "./pages/Home.jsx";
 import Products from "./pages/Products.jsx";
+import AboutPage from "./pages/AboutPage.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
 import ProductPage from "./pages/ProductPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/shop" element={<Navigate to="/products" replace />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/category/:categorySlug" element={<CategoryPage />} />
           <Route path="/product/:productId" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />

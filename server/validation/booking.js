@@ -1,4 +1,4 @@
-import { productsById } from "../../src/data/products.js";
+import { products, productsById } from "../../src/data/products.js";
 
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 const clean = (v, max) =>
@@ -39,7 +39,7 @@ export function validateBooking(body) {
 
   const items = [];
   if (!Array.isArray(b.items) || b.items.length === 0) errors.items = "Your bag is empty.";
-  else if (b.items.length > 63) errors.items = "Too many items.";
+  else if (b.items.length > products.length) errors.items = "Too many items.";
   else {
     const seen = new Set();
     for (const it of b.items) {

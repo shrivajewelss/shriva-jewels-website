@@ -7,7 +7,7 @@ export default function BookingSummary({ lines, subtotal }) {
       <ul className="mt-4 space-y-3 text-sm">
         {lines.map((l) => (
           <li key={l.id} className="flex justify-between gap-4">
-            <span>{l.product.name} <span className="text-muted">· Code {l.product.code} · {formatPrice(l.product.price)} × {l.quantity}</span></span>
+            <span>{l.product.name} <span className="text-muted">{l.product.code ? `· Code ${l.product.code} ` : ""}· {formatPrice(l.product.price)} × {l.quantity}</span></span>
             <span className="shrink-0">{formatPrice(l.product.price * l.quantity)}</span>
           </li>
         ))}

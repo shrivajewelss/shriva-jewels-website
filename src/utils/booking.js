@@ -2,7 +2,12 @@ import { formatPrice } from "./currency.js";
 import { normalizeIndianMobile } from "./validation.js";
 
 export const BUSINESS_WHATSAPP_NUMBER = "919898384604";
+export const CONTACT_PHONE = "+91 98983 84604";
+export const CONTACT_PHONE_RAW = "9898384604";
+export const CONTACT_EMAIL = "shrivajewelss@gmail.com";
 export const INSTAGRAM_URL = (typeof import.meta !== "undefined" && import.meta.env?.VITE_INSTAGRAM_URL) || "https://www.instagram.com/shriva._jewels/";
+export const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61594874023954";
+export const PINTEREST_URL = "https://in.pinterest.com/shrivajewelss/";
 export const hasWhatsAppNumber = true;
 
   /**

@@ -11,7 +11,7 @@ import {
   validateEmail,
   validateForm,
 } from "../src/utils/validation.js";
-import { products } from "../src/data/products.js";
+import { products, productsById } from "../src/data/products.js";
 
 test("Business WhatsApp number and destination URL", () => {
   assert.equal(BUSINESS_WHATSAPP_NUMBER, "919898384604");
@@ -74,9 +74,9 @@ test("Validation: optional PIN code", () => {
 });
 
 test("Generate booking message with multiple products and quantities", () => {
-  const p1 = products[0]; // Gemstone Hand Chain, code 1129685, price 320
-  const p2 = products[1]; // Floral Hand Chain, code 1159780, price 320
-  const p3 = products[2]; // Flower Charm Anklet, code 1154807, price 280
+  const p1 = productsById["1129685-p02"]; // Gemstone Hand Chain, code 1129685, price 320
+  const p2 = productsById["1159780-p03"]; // Floral Hand Chain, code 1159780, price 320
+  const p3 = productsById["1154807-p04"]; // Flower Charm Anklet, code 1154807, price 280
 
   const lines = [
     { product: p1, quantity: 2 },
@@ -140,7 +140,7 @@ test("Generate booking message with multiple products and quantities", () => {
 });
 
 test("Generate booking message with omitted optional fields", () => {
-  const p = products[3]; // Crystal Drop Anklet, code 1142639, price 200
+  const p = productsById["1142639-p05"]; // Crystal Drop Anklet, code 1142639, price 200
   const lines = [{ product: p, quantity: 1 }];
 
   const customer = {
@@ -167,7 +167,7 @@ test("Generate booking message with omitted optional fields", () => {
 });
 
 test("URL encoding round-trip preserves special characters, spaces, and INR symbols", () => {
-  const p = products[0];
+  const p = productsById["1129685-p02"];
   const lines = [{ product: p, quantity: 2 }];
   const customer = {
     name: "Dia & Co.",

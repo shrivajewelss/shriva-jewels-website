@@ -13,7 +13,7 @@ export default function Collection({ title, category }) {
 
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
-    let out = products.filter((p) => (!category || p.category === category) && (!term || p.name.toLowerCase().includes(term) || p.code.includes(term)));
+    let out = products.filter((p) => (!category || p.category === category) && (!term || p.name.toLowerCase().includes(term) || (p.code && p.code.toLowerCase().includes(term))));
     if (sort === "asc") out = [...out].sort((a, b) => a.price - b.price);
     if (sort === "desc") out = [...out].sort((a, b) => b.price - a.price);
     return out;
