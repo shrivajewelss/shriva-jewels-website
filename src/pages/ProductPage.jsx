@@ -41,7 +41,7 @@ export default function ProductPage() {
       <div className="mt-6 grid gap-10 md:grid-cols-2 lg:gap-16">
         <div className="relative overflow-hidden rounded-lg bg-sand">
           <img
-            src={product.image}
+            src={`https://shriva-jewels.vercel.app${product.image}`}
             alt={`${product.name} — Shriva Jewels`}
             width="800"
             height="1067"

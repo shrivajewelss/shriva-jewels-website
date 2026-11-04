@@ -110,7 +110,7 @@ export default function MobileMenu({ open, onClose }) {
         <div className="flex h-16 sm:h-20 items-center justify-between border-b border-line px-5 sm:px-6">
           <Link to="/" onClick={onClose} aria-label="Shriva Jewels — home" className="shrink-0">
             <img
-              src="/brand/shriva-logo.png"
+              src="https://shriva-jewels.vercel.app/brand/shriva-logo.png"
               alt="Shriva Jewels"
               width="830"
               height="481"

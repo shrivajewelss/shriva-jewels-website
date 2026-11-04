@@ -35,7 +35,7 @@ export default function Header() {
           </button>
           <Link to="/" aria-label="Shriva Jewels — home" className="shrink-0">
             <img
-              src="/brand/shriva-logo.png"
+              src="https://shriva-jewels.vercel.app/brand/shriva-logo.png"
               alt="Shriva Jewels"
               width="830"
               height="481"

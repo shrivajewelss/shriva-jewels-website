@@ -14,7 +14,7 @@ export default function CartItem({ line }) {
     <li className={`flex gap-4 border-b border-line py-5 ${!isAvailable ? "opacity-75" : ""}`}>
       <Link to={`/product/${product.id}`} className="relative shrink-0 overflow-hidden rounded-md">
         <img
-          src={product.image}
+          src={`https://shriva-jewels.vercel.app${product.image}`}
           alt={product.name}
           width="96"
           height="128"

@@ -30,7 +30,7 @@ export default function ProductCard({ product, priority = false }) {
         aria-hidden="true"
       >
         <img
-          src={product.image}
+          src={`https://shriva-jewels.vercel.app${product.image}`}
           alt={product.name}
           width="800"
           height="1067"
