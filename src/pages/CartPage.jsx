@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import { usePageMeta } from "../hooks/usePageMeta.js";
+import { trackBeginCheckout } from "../utils/analytics.js";
 import CartItem from "../components/CartItem.jsx";
 import BookingSummary from "../components/BookingSummary.jsx";
 import BookingForm from "../components/BookingForm.jsx";
@@ -12,6 +13,12 @@ export default function CartPage() {
   usePageMeta({ title: "Your Bag — Shriva Jewels", description: "Review the jewellery in your bag before sending a booking request.", path: "/cart", noindex: true });
   const { lines, subtotal, count, clear } = useCart();
   const [name, setName] = useState("");
+
+  useEffect(() => {
+    if (lines.length > 0) {
+      trackBeginCheckout(lines, subtotal);
+    }
+  }, []);
 
   if (lines.length === 0) {
     return (

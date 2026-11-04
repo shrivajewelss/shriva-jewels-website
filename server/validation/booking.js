@@ -45,8 +45,8 @@ export function validateBooking(body) {
     for (const it of b.items) {
       const product = productsById[it?.id];
       const qty = Number(it?.quantity);
-      if (!product || !Number.isInteger(qty) || qty < 1 || qty > 20 || seen.has(it.id)) {
-        errors.items = "One or more items in your bag are invalid. Please review your bag.";
+      if (!product || product.inStock === false || !Number.isInteger(qty) || qty < 1 || qty > 20 || seen.has(it.id)) {
+        errors.items = "One or more items in your bag are invalid or unavailable. Please review your bag.";
         break;
       }
       seen.add(it.id);

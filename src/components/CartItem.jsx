@@ -2,28 +2,72 @@ import { Link } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
 import { formatPrice } from "../utils/currency.js";
+import { trackRemoveFromCart } from "../utils/analytics.js";
 import QuantitySelector from "./QuantitySelector.jsx";
 
 export default function CartItem({ line }) {
   const { setQuantity, remove } = useCart();
   const { product, quantity } = line;
+  const isAvailable = product?.inStock !== false;
+
   return (
-    <li className="flex gap-4 border-b border-line py-5">
-      <Link to={`/product/${product.id}`} className="shrink-0"><img src={product.image} alt={product.name} width="96" height="128" loading="lazy" className="h-28 w-[84px] rounded-md bg-sand object-cover" /></Link>
+    <li className={`flex gap-4 border-b border-line py-5 ${!isAvailable ? "opacity-75" : ""}`}>
+      <Link to={`/product/${product.id}`} className="relative shrink-0 overflow-hidden rounded-md">
+        <img
+          src={product.image}
+          alt={product.name}
+          width="96"
+          height="128"
+          loading="lazy"
+          className="h-28 w-[84px] rounded-md bg-sand object-cover"
+        />
+        {!isAvailable && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <span className="rounded bg-maroon-deep/90 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-cream">
+              Out of stock
+            </span>
+          </div>
+        )}
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex justify-between gap-3">
           <div className="min-w-0">
             {product.code ? (
               <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Code {product.code}</p>
             ) : null}
-            <h3 className="font-display text-xl leading-snug"><Link to={`/product/${product.id}`} className="text-ink hover:text-maroon">{product.name}</Link></h3>
+            <h3 className="font-display text-xl leading-snug">
+              <Link to={`/product/${product.id}`} className="text-ink hover:text-maroon">
+                {product.name}
+              </Link>
+            </h3>
             <p className="text-sm text-muted">{formatPrice(product.price)} each</p>
+            {!isAvailable && (
+              <p className="mt-1 text-xs font-medium text-red-700">
+                Item currently out of stock. Please remove to proceed.
+              </p>
+            )}
           </div>
           <p className="shrink-0 font-medium text-maroon">{formatPrice(product.price * quantity)}</p>
         </div>
         <div className="mt-auto flex items-center justify-between pt-3">
-          <QuantitySelector value={quantity} onChange={(n) => setQuantity(product.id, n)} label={`Quantity for ${product.name}`} />
-          <button type="button" onClick={() => remove(product.id)} className="flex items-center gap-1.5 rounded p-2 text-sm text-muted hover:text-maroon" aria-label={`Remove ${product.name} from bag`}>
+          {isAvailable ? (
+            <QuantitySelector
+              value={quantity}
+              onChange={(n) => setQuantity(product.id, n)}
+              label={`Quantity for ${product.name}`}
+            />
+          ) : (
+            <span className="text-xs text-muted">Unavailable</span>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              trackRemoveFromCart(product, quantity);
+              remove(product.id);
+            }}
+            className="flex items-center gap-1.5 rounded p-2 text-sm text-muted hover:text-maroon"
+            aria-label={`Remove ${product.name} from bag`}
+          >
             <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" /> Remove
           </button>
         </div>

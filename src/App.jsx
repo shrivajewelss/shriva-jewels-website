@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // import AnnouncementBar from "./components/AnnouncementBar.jsx";
+import GoogleAnalytics from "./components/GoogleAnalytics.jsx";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import Home from "./pages/Home.jsx";
@@ -24,6 +25,7 @@ function ScrollManager() {
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
+      <GoogleAnalytics />
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-maroon focus:px-4 focus:py-2 focus:text-cream">Skip to content</a>
       {/* <AnnouncementBar /> */}
       <Header />

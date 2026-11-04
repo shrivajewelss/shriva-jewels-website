@@ -7,6 +7,7 @@ import {
   copyToClipboard,
 } from "../utils/booking.js";
 import { validateForm } from "../utils/validation.js";
+import { trackBookingRequest } from "../utils/analytics.js";
 
 function Field({ id, label, optional, error, children }) {
   return (
@@ -66,11 +67,19 @@ export default function BookingForm({ onNameChange }) {
       return;
     }
 
-    if (lines.length === 0) return;
+    const hasUnavailable = lines.some((l) => l.product?.inStock === false);
+    if (lines.length === 0 || hasUnavailable) return;
 
     const businessNumber = BUSINESS_WHATSAPP_NUMBER;
     const message = generateBookingMessage({ customer: f, lines });
     const whatsappUrl = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
+
+    trackBookingRequest({
+      method: "whatsapp_form",
+      customer: f,
+      lines,
+      subtotal: lines.reduce((s, l) => s + (l.product?.price ?? 0) * l.quantity, 0),
+    });
 
     try {
       window.open(whatsappUrl, "_blank", "noopener,noreferrer");
@@ -258,12 +267,18 @@ export default function BookingForm({ onNameChange }) {
                   </div>
             )}
 
+              {lines.some((l) => l.product?.inStock === false) && (
+                <p className="text-xs text-red-700 font-medium text-center" role="alert">
+                  Some items in your bag are currently out of stock. Please remove them to proceed.
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="btn btn-primary w-full"
-                disabled={lines.length === 0}
+                className="btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={lines.length === 0 || lines.some((l) => l.product?.inStock === false)}
               >
-                Request for Booking
+                {lines.some((l) => l.product?.inStock === false) ? "Remove Unavailable Items to Book" : "Request for Booking"}
               </button>
             </form>
             );
