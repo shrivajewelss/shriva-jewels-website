@@ -24,9 +24,11 @@ export function initGA() {
   };
 
   window.gtag("js", new Date());
-  // Disable automatic pageview to avoid duplicates and handle SPA navigation manually
+
+  // Configure Google Tag (in development, enable debug_mode for GA4 DebugView)
+  const isDev = Boolean(typeof import.meta !== "undefined" && import.meta.env?.DEV);
   window.gtag("config", GA_MEASUREMENT_ID, {
-    send_page_view: false,
+    ...(isDev ? { debug_mode: true } : {}),
   });
 
   // Inject Google Tag script
