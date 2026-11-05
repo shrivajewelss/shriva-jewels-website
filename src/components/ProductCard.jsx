@@ -31,7 +31,7 @@ export default function ProductCard({ product, priority = false }) {
       >
         <img
           src={`https://www.shriva.store/${product.image}`}
-          alt={product.name}
+          alt={`${product.name} - Shriva Jewels ${product.category || "fashion jewellery"}`}
           width="800"
           height="1067"
           loading={priority ? "eager" : "lazy"}

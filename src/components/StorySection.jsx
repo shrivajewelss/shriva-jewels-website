@@ -4,7 +4,7 @@ export default function StorySection() {
   return (
     <section className="mt-24 bg-sand">
       <div className="container-page grid items-center gap-10 py-16 md:grid-cols-2 lg:gap-16">
-        <img src="https://www.shriva.store//images/products/p48.jpg" alt="Sapphire halo cocktail ring" width="800" height="1200" loading="lazy" className="aspect-[4/5] w-full rounded-lg object-cover" />
+        <img src="https://www.shriva.store//images/products/p48.jpg" alt="Shriva Jewels Sapphire Halo Cocktail Ring - handcrafted fine fashion jewellery" width="800" height="1200" loading="lazy" className="aspect-[4/5] w-full rounded-lg object-cover" />
         <div>
           <p className="eyebrow">Our story</p>
           <h2 className="mt-3 text-4xl sm:text-5xl">Made to make you feel special</h2>

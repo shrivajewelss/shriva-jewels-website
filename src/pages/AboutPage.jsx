@@ -41,6 +41,8 @@ export default function AboutPage() {
     title: "About Us — Three Friends, One Dream | Shriva Jewels",
     description:
       "Meet Princy Dholu, Dhrumi Mistry, and Aradhana Dholu—the three friends behind Shriva Jewels, curating jewellery that celebrates beauty and individuality.",
+    keywords:
+      "about Shriva Jewels, Shriva Jewels founders, Princy Dholu, Dhrumi Mistry, Aradhana Dholu, handmade jewellery brand India, trusted women jewellery brand, fashion jewellery founders",
     path: "/about",
   });
 

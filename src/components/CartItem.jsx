@@ -15,7 +15,7 @@ export default function CartItem({ line }) {
       <Link to={`/product/${product.id}`} className="relative shrink-0 overflow-hidden rounded-md">
         <img
           src={`https://www.shriva.store/${product.image}`}
-          alt={product.name}
+          alt={`${product.name} - Shriva Jewels ${product.category || "jewellery"}`}
           width="96"
           height="128"
           loading="lazy"

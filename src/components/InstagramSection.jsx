@@ -3,7 +3,14 @@ import { INSTAGRAM_URL } from "../utils/booking.js";
 
 // Same six tiles as the live homepage. They are catalogue photos linking to the profile —
 // no posts, likes or follower counts are fabricated.
-const tiles = ["p04", "p22", "p42", "p09", "p32", "p56"];
+const tiles = [
+  { id: "p04", alt: "Shriva Jewels Flower Charm Anklet featured on Instagram" },
+  { id: "p22", alt: "Shriva Jewels Crystal Drop Earrings featured on Instagram" },
+  { id: "p42", alt: "Shriva Jewels Beaded Charm Bracelet featured on Instagram" },
+  { id: "p09", alt: "Shriva Jewels Twisted Gold Bangle featured on Instagram" },
+  { id: "p32", alt: "Shriva Jewels Delicate Chain Necklace featured on Instagram" },
+  { id: "p56", alt: "Shriva Jewels Sparkling Cocktail Ring featured on Instagram" },
+];
 
 export default function InstagramSection() {
   return (
@@ -12,9 +19,9 @@ export default function InstagramSection() {
       <h2 id="ig-h" className="mt-2 text-center text-4xl sm:text-5xl">@shriva._jewels</h2>
       <ul className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-6">
         {tiles.map((t) => (
-          <li key={t}>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Open Shriva Jewels on Instagram" className="group block overflow-hidden rounded-md bg-sand">
-              <img src={`https://www.shriva.store//images/products/${t}.jpg`} alt="" loading="lazy" width="800" height="800" className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <li key={t.id}>
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Open Shriva Jewels on Instagram - ${t.alt}`} className="group block overflow-hidden rounded-md bg-sand">
+              <img src={`https://www.shriva.store//images/products/${t.id}.jpg`} alt={t.alt} loading="lazy" width="800" height="800" className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105" />
             </a>
           </li>
         ))}

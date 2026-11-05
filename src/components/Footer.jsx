@@ -35,7 +35,7 @@ export default function Footer() {
         <div>
           <img
             src="https://www.shriva.store//brand/shriva-logo-light.png"
-            alt="Shriva Jewels"
+            alt="Shriva Jewels - Elegant Fashion Jewellery"
             width="830"
             height="481"
             className="h-20 w-auto"
