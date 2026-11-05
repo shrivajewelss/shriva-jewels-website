@@ -3,3 +3,5 @@ Allow: /
 Disallow: /cart
 Disallow: /booking-success/
 Disallow: /api/
+
+Sitemap: https://www.shriva.store/sitemap.xml
