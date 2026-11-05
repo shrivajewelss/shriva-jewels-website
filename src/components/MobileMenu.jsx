@@ -81,16 +81,14 @@ export default function MobileMenu({ open, onClose }) {
   const content = (
     <div
       id="mobile-menu"
-      className={`fixed inset-0 z-[100] lg:hidden ${
-        open ? "pointer-events-auto visible" : "pointer-events-none invisible"
-      }`}
+      className={`fixed inset-0 z-[100] lg:hidden ${open ? "pointer-events-auto visible" : "pointer-events-none invisible"
+        }`}
       aria-hidden={!open}
     >
       {/* Dimmed backdrop covering full viewport */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "opacity-0"
+          }`}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -102,15 +100,14 @@ export default function MobileMenu({ open, onClose }) {
         aria-modal="true"
         aria-label="Navigation Menu"
         tabIndex={-1}
-        className={`fixed inset-y-0 left-0 z-[101] flex w-[85%] max-w-sm flex-col bg-[#faf5ee] shadow-2xl transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-[101] flex w-[85%] max-w-sm flex-col bg-[#faf5ee] shadow-2xl transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Drawer Header */}
         <div className="flex h-16 sm:h-20 items-center justify-between border-b border-line px-5 sm:px-6">
           <Link to="/" onClick={onClose} aria-label="Shriva Jewels — home" className="shrink-0">
             <img
-              src="https://shriva-jewels.vercel.app/brand/shriva-logo.png"
+              src="https://www.shriva.store//brand/shriva-logo.png"
               alt="Shriva Jewels"
               width="830"
               height="481"
@@ -136,8 +133,7 @@ export default function MobileMenu({ open, onClose }) {
                 to={l.to}
                 end={l.end}
                 className={({ isActive }) =>
-                  `flex items-center justify-between py-3.5 font-display text-2xl transition-colors ${
-                    isActive ? "text-maroon font-semibold" : "text-ink hover:text-maroon"
+                  `flex items-center justify-between py-3.5 font-display text-2xl transition-colors ${isActive ? "text-maroon font-semibold" : "text-ink hover:text-maroon"
                   }`
                 }
               >

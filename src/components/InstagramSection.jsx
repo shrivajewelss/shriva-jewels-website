@@ -14,7 +14,7 @@ export default function InstagramSection() {
         {tiles.map((t) => (
           <li key={t}>
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Open Shriva Jewels on Instagram" className="group block overflow-hidden rounded-md bg-sand">
-              <img src={`https://shriva-jewels.vercel.app/images/products/${t}.jpg`} alt="" loading="lazy" width="800" height="800" className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img src={`https://www.shriva.store//images/products/${t}.jpg`} alt="" loading="lazy" width="800" height="800" className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105" />
             </a>
           </li>
         ))}

@@ -41,14 +41,13 @@ export default function ProductPage() {
       <div className="mt-6 grid gap-10 md:grid-cols-2 lg:gap-16">
         <div className="relative overflow-hidden rounded-lg bg-sand">
           <img
-            src={`https://shriva-jewels.vercel.app${product.image}`}
+            src={`https://www.shriva.store/${product.image}`}
             alt={`${product.name} — Shriva Jewels`}
             width="800"
             height="1067"
             fetchPriority="high"
-            className={`aspect-[3/4] w-full object-cover transition-all ${
-              !isAvailable ? "opacity-85 saturate-[0.85]" : ""
-            }`}
+            className={`aspect-[3/4] w-full object-cover transition-all ${!isAvailable ? "opacity-85 saturate-[0.85]" : ""
+              }`}
           />
           {!isAvailable && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/25 backdrop-blur-[1px]">

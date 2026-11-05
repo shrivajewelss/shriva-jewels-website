@@ -30,17 +30,16 @@ export default function ProductCard({ product, priority = false }) {
         aria-hidden="true"
       >
         <img
-          src={`https://shriva-jewels.vercel.app${product.image}`}
+          src={`https://www.shriva.store/${product.image}`}
           alt={product.name}
           width="800"
           height="1067"
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          className={`aspect-[3/4] w-full object-cover transition-all duration-700 ease-[var(--ease)] ${
-            isAvailable
+          className={`aspect-[3/4] w-full object-cover transition-all duration-700 ease-[var(--ease)] ${isAvailable
               ? "group-hover:scale-105"
               : "opacity-80 saturate-[0.85] group-hover:scale-100"
-          }`}
+            }`}
         />
 
         {/* Elegant Out of Stock Badge Overlay */}

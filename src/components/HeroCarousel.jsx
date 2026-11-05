@@ -158,11 +158,10 @@ export default function HeroCarousel({
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive
                   ? "opacity-100 z-10 pointer-events-auto"
                   : "opacity-0 z-0 pointer-events-none"
-              }`}
+                }`}
               role="group"
               aria-roledescription="slide"
               aria-label={`${index + 1} of ${totalSlides}: ${slide.title}`}
@@ -170,15 +169,14 @@ export default function HeroCarousel({
             >
               {/* Campaign Image */}
               <img
-                src={`https://shriva-jewels.vercel.app${slide.image}`}
+                src={`https://www.shriva.store/${slide.image}`}
                 alt={slide.alt}
                 width="1600"
                 height="900"
                 fetchPriority={index === 0 ? "high" : "auto"}
                 loading={index === 0 ? "eager" : "lazy"}
-                className={`w-full h-full object-cover ${slide.imagePosition} transition-transform duration-1000 ease-out ${
-                  isActive ? "scale-100" : "scale-105"
-                } brightness-[1.03] contrast-[1.02]`}
+                className={`w-full h-full object-cover ${slide.imagePosition} transition-transform duration-1000 ease-out ${isActive ? "scale-100" : "scale-105"
+                  } brightness-[1.03] contrast-[1.02]`}
               />
 
               {/* Directional gradient overlay for text readability without washing out jewellery */}
@@ -260,11 +258,10 @@ export default function HeroCarousel({
                 aria-selected={isActive}
                 aria-label={`Go to slide ${idx + 1}: ${slide.title}`}
                 onClick={() => goToSlide(idx)}
-                className={`h-1.5 rounded-full transition-all duration-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream ${
-                  isActive
+                className={`h-1.5 rounded-full transition-all duration-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cream ${isActive
                     ? "w-8 sm:w-10 bg-cream shadow-md"
                     : "w-2 sm:w-2.5 bg-white/40 hover:bg-white/70"
-                }`}
+                  }`}
               />
             );
           })}
