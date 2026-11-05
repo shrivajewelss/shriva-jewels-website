@@ -15,8 +15,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const link = ({ isActive }) =>
-    `relative py-1 text-sm tracking-wide transition-colors hover:text-maroon after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-maroon after:transition-transform after:duration-300 ${
-      isActive ? "text-maroon after:scale-x-100" : "text-ink after:scale-x-0 hover:after:scale-x-100"
+    `relative py-1 text-sm tracking-wide transition-colors hover:text-maroon after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-maroon after:transition-transform after:duration-300 ${isActive ? "text-maroon after:scale-x-100" : "text-ink after:scale-x-0 hover:after:scale-x-100"
     }`;
 
   return (
@@ -35,7 +34,7 @@ export default function Header() {
           </button>
           <Link to="/" aria-label="Shriva Jewels — home" className="shrink-0">
             <img
-              src="https://shriva-jewels.vercel.app/brand/shriva-logo.png"
+              src="https://www.shriva.store//brand/shriva-logo.png"
               alt="Shriva Jewels"
               width="830"
               height="481"

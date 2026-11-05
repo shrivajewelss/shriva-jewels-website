@@ -34,7 +34,7 @@ export default function Footer() {
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1.4fr]">
         <div>
           <img
-            src="https://shriva-jewels.vercel.app/brand/shriva-logo-light.png"
+            src="https://www.shriva.store//brand/shriva-logo-light.png"
             alt="Shriva Jewels"
             width="830"
             height="481"
