@@ -7,13 +7,13 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "dev": "concurrently -n web,api -c magenta,cyan \"vite\" \"node --env-file-if-exists=.env --watch server/index.js\"",
-    "dev:web": "vite",
-    "dev:api": "node --env-file-if-exists=.env --watch server/index.js",
+    "dev": "node init && concurrently -n web,api -c magenta,cyan \"vite\" \"node --env-file-if-exists=.env --watch server/index.js\"",
+    "dev:web": "node init && vite",
+    "dev:api": "node init && node --env-file-if-exists=.env --watch server/index.js",
     "prebuild": "node scripts/generate-sitemap.mjs",
-    "build": "vite build",
+    "build": "node init && vite build",
     "preview": "vite preview",
-    "start": "node --env-file-if-exists=.env server/index.js",
+    "start": "node init && node --env-file-if-exists=.env server/index.js",
     "test": "node --test tests/server.test.js tests/whatsapp_booking.test.js tests/vercel_config.test.js tests/out_of_stock.test.js tests/analytics.test.js tests/sitemap.test.js",
     "lint:syntax": "node scripts/check-syntax.mjs"
   },

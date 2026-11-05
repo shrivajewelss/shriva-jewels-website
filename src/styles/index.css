@@ -67,3 +67,18 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .animate-marquee { animation: none !important; transform: none !important; }
 }
+
+/* Hero Carousel Image Focal Points:
+   Ensures models and jewellery on the right-center are perfectly framed on mobile
+   viewports without getting cropped, while remaining beautifully balanced on desktop. */
+.hero-focal-1 { object-position: 72% 30%; }
+.hero-focal-2 { object-position: 60% 25%; }
+.hero-focal-3 { object-position: 45% 30%; }
+.hero-focal-4 { object-position: 80% 45%; }
+
+@media (min-width: 640px) {
+  .hero-focal-1 { object-position: center 35%; }
+  .hero-focal-2 { object-position: center 35%; }
+  .hero-focal-3 { object-position: center 40%; }
+  .hero-focal-4 { object-position: center 40%; }
+}
