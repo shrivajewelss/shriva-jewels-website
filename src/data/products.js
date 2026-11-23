@@ -1,9 +1,3 @@
-// Authoritative product catalogue. Source: supplied Shriva_Jewels_Catalogue.pdf (code, price, image)
-// + names/category grouping verified against https://shriva-jewels.lovable.app (Oct 2026).
-// `id` = `<code>-p<catalogue page>`. Codes are NOT unique in the catalogue (1154807, 1183807, 1183812 repeat),
-// so the id is the stable identifier and matches the live site's /product/:id URLs.
-// Shared by the React app AND the server (the server recalculates all totals from this file).
-// `inStock`: boolean. Set to false for unavailable pieces, true for available items.
 export const products = [
   { id: "p65", inStock: true, name: "Crystal Bezel Tennis Bracelet", price: 450, category: "bracelets", image: "/images/products/p65.png", page: 65 },
   { id: "p66", inStock: true, name: "Triple Layer Chain & Crystal Bangle", price: 380, category: "bracelets", image: "/images/products/p66.png", page: 66 },

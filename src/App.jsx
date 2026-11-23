@@ -15,6 +15,7 @@ import ProductPage from "./pages/ProductPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import BookingSuccess from "./pages/BookingSuccess.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import React from "react";
 
 function ScrollManager() {
   const { pathname, hash } = useLocation();
