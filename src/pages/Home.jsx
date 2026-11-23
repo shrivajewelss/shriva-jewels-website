@@ -9,7 +9,8 @@ import InstagramSection from "../components/InstagramSection.jsx";
 export default function Home() {
   usePageMeta({
     title: "Shriva Jewels — Jewellery That Speaks Your Style",
-    description: "Discover earrings, necklaces, rings, bracelets and anklets from Shriva Jewels. Add to your bag and book on WhatsApp.",
+    description: "Discover earrings, necklaces, rings, bracelets and anklets from Shriva Jewels. Handcrafted quality, anti-tarnish fashion jewellery. Add to your bag and book on WhatsApp.",
+    keywords: "Shriva Jewels, fashion jewellery India, anti-tarnish jewellery, imitation jewellery, women jewellery online, trending earrings, pendant necklaces, stone rings, charm bracelets, anklets, affordable luxury jewellery",
     path: "/",
   });
   return (

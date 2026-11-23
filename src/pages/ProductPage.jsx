@@ -24,7 +24,11 @@ export default function ProductPage() {
   usePageMeta({
     title: product ? `${product.name}${product.code ? ` (${product.code})` : ""} — Shriva Jewels` : "Page not found — Shriva Jewels",
     description: product ? `${product.name}${product.code ? `, product code ${product.code}` : ""}, ${formatPrice(product.price)}. Book on WhatsApp.` : undefined,
-    path: product ? `/product/${product.id}` : undefined, noindex: !product,
+    keywords: product
+      ? `${product.name}, ${product.code ? `code ${product.code}, ` : ""}${product.category || "jewellery"}, buy ${product.name} online, Shriva Jewels ${product.name}, fashion ${product.category || "jewellery"} price ${formatPrice(product.price)}`
+      : undefined,
+    path: product ? `/product/${product.id}` : undefined,
+    noindex: !product,
   });
   if (!product) return <NotFound />;
 
@@ -42,7 +46,7 @@ export default function ProductPage() {
         <div className="relative overflow-hidden rounded-lg bg-sand">
           <img
             src={`https://www.shriva.store/${product.image}`}
-            alt={`${product.name} — Shriva Jewels`}
+            alt={`${product.name}${product.code ? ` (${product.code})` : ""} - Shriva Jewels ${cat ? cat.name : "fashion jewellery"}`}
             width="800"
             height="1067"
             fetchPriority="high"

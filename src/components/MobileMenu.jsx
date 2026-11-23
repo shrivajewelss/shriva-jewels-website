@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { NavLink, useLocation, Link } from "react-router-dom";
-import { X, Instagram, Facebook, Phone, Mail, MessageCircle } from "lucide-react";
+import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
+import { X, Instagram, Facebook, Phone, Mail, MessageCircle, Search, ShoppingBag } from "lucide-react";
 import { navLinks } from "./Header.jsx";
+import { categories } from "../data/categories.js";
+import { useCart } from "../context/CartContext.jsx";
 import {
   INSTAGRAM_URL,
   FACEBOOK_URL,
@@ -32,7 +34,10 @@ function PinterestIcon({ size = 16, className = "" }) {
 export default function MobileMenu({ open, onClose }) {
   const panel = useRef(null);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { count } = useCart();
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -48,7 +53,7 @@ export default function MobileMenu({ open, onClose }) {
     const opener = document.activeElement;
     document.body.style.overflow = "hidden";
 
-    const focusables = () => panel.current?.querySelectorAll("a[href], button") || [];
+    const focusables = () => panel.current?.querySelectorAll("a[href], button, input") || [];
     const elements = focusables();
     if (elements.length > 0) {
       elements[0].focus();
@@ -76,19 +81,32 @@ export default function MobileMenu({ open, onClose }) {
     };
   }, [open, onClose]);
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const term = searchQuery.trim();
+    onClose();
+    if (term) {
+      navigate(`/products?q=${encodeURIComponent(term)}`);
+    } else {
+      navigate("/products");
+    }
+  };
+
   if (!mounted) return null;
 
   const content = (
     <div
       id="mobile-menu"
-      className={`fixed inset-0 z-[100] lg:hidden ${open ? "pointer-events-auto visible" : "pointer-events-none invisible"
-        }`}
+      className={`fixed inset-0 z-[100] md:hidden ${
+        open ? "pointer-events-auto visible" : "pointer-events-none invisible"
+      }`}
       aria-hidden={!open}
     >
       {/* Dimmed backdrop covering full viewport */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${open ? "opacity-100" : "opacity-0"
-          }`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -100,15 +118,16 @@ export default function MobileMenu({ open, onClose }) {
         aria-modal="true"
         aria-label="Navigation Menu"
         tabIndex={-1}
-        className={`fixed inset-y-0 left-0 z-[101] flex w-[85%] max-w-sm flex-col bg-[#faf5ee] shadow-2xl transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-[101] flex w-[85%] max-w-sm flex-col bg-[#faf5ee] shadow-2xl transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Drawer Header */}
         <div className="flex h-16 sm:h-20 items-center justify-between border-b border-line px-5 sm:px-6">
           <Link to="/" onClick={onClose} aria-label="Shriva Jewels — home" className="shrink-0">
             <img
               src="https://www.shriva.store//brand/shriva-logo.png"
-              alt="Shriva Jewels"
+              alt="Shriva Jewels - Fashion Jewellery Brand Logo"
               width="830"
               height="481"
               className="h-10 sm:h-12 w-auto"
@@ -124,16 +143,32 @@ export default function MobileMenu({ open, onClose }) {
           </button>
         </div>
 
-        {/* Drawer Links */}
-        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4">
+        {/* Drawer Body */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-6">
+          {/* Mobile Drawer Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search size={16} className="pointer-events-none absolute left-3.5 text-muted" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search jewellery..."
+              aria-label="Search jewellery"
+              className="h-10 w-full rounded-full border border-line bg-white pl-9 pr-4 text-xs sm:text-sm text-ink placeholder:text-muted/70 focus:border-maroon focus:outline-none"
+            />
+          </form>
+
+          {/* Primary Nav Links: Shop All and About Us */}
           <nav aria-label="Mobile Navigation" className="flex flex-col divide-y divide-line/60">
             {navLinks.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 end={l.end}
+                onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center justify-between py-3.5 font-display text-2xl transition-colors ${isActive ? "text-maroon font-semibold" : "text-ink hover:text-maroon"
+                  `flex items-center justify-between py-3.5 font-display text-2xl transition-colors ${
+                    isActive ? "text-maroon font-semibold" : "text-ink hover:text-maroon"
                   }`
                 }
               >
@@ -141,7 +176,43 @@ export default function MobileMenu({ open, onClose }) {
                 <span className="font-sans text-xs text-muted/60">→</span>
               </NavLink>
             ))}
+
+            {/* Quick Bag Link */}
+            <NavLink
+              to="/cart"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center justify-between py-3.5 font-display text-2xl transition-colors ${
+                  isActive ? "text-maroon font-semibold" : "text-ink hover:text-maroon"
+                }`
+              }
+            >
+              <div className="flex items-center gap-2.5">
+                <ShoppingBag size={20} strokeWidth={1.5} className="text-maroon" />
+                <span>Your Bag</span>
+              </div>
+              <span className="rounded-full bg-sand px-2 py-0.5 font-sans text-xs font-semibold text-maroon">
+                {count} {count === 1 ? "item" : "items"}
+              </span>
+            </NavLink>
           </nav>
+
+          {/* Shop by Category Subsection */}
+          <div className="pt-2">
+            <p className="eyebrow mb-2.5">Browse Categories</p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <NavLink
+                  key={c.slug}
+                  to={`/category/${c.slug}`}
+                  onClick={onClose}
+                  className="rounded-full border border-line bg-cream px-3 py-1.5 text-xs font-medium text-ink hover:border-maroon hover:text-maroon transition-colors"
+                >
+                  {c.name}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Drawer Footer */}
