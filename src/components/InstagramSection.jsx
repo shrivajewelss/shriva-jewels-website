@@ -4,12 +4,12 @@ import { INSTAGRAM_URL } from "../utils/booking.js";
 // Same six tiles as the live homepage. They are catalogue photos linking to the profile —
 // no posts, likes or follower counts are fabricated.
 const tiles = [
-  { id: "p04", alt: "Shriva Jewels Flower Charm Anklet featured on Instagram" },
-  { id: "p22", alt: "Shriva Jewels Crystal Drop Earrings featured on Instagram" },
-  { id: "p42", alt: "Shriva Jewels Beaded Charm Bracelet featured on Instagram" },
-  { id: "p09", alt: "Shriva Jewels Twisted Gold Bangle featured on Instagram" },
-  { id: "p32", alt: "Shriva Jewels Delicate Chain Necklace featured on Instagram" },
-  { id: "p56", alt: "Shriva Jewels Sparkling Cocktail Ring featured on Instagram" },
+  { id: "p05", alt: "Shriva Jewels Flower Charm Anklet featured on Instagram" },
+  { id: "p12", alt: "Shriva Jewels Crystal Drop Earrings featured on Instagram" },
+  { id: "p19", alt: "Shriva Jewels Beaded Charm Bracelet featured on Instagram" },
+  { id: "p30", alt: "Shriva Jewels Twisted Gold Bangle featured on Instagram" },
+  { id: "p55", alt: "Shriva Jewels Delicate Chain Necklace featured on Instagram" },
+  { id: "p45", alt: "Shriva Jewels Sparkling Cocktail Ring featured on Instagram" },
 ];
 
 export default function InstagramSection() {
