@@ -31,14 +31,20 @@ export default function ProductCard({ product, priority = false }) {
       >
         <img
           src={`https://www.shriva.store/${product.image}`}
+          onError={(e) => {
+            if (!e.currentTarget.dataset.fallback) {
+              e.currentTarget.dataset.fallback = "true";
+              e.currentTarget.src = `/${product.image}`;
+            }
+          }}
           alt={`${product.name} - Shriva Jewels ${product.category || "fashion jewellery"}`}
           width="800"
           height="1067"
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           className={`aspect-[3/4] w-full object-cover transition-all duration-700 ease-[var(--ease)] ${isAvailable
-              ? "group-hover:scale-105"
-              : "opacity-80 saturate-[0.85] group-hover:scale-100"
+            ? "group-hover:scale-105"
+            : "opacity-80 saturate-[0.85] group-hover:scale-100"
             }`}
         />
 
@@ -52,9 +58,6 @@ export default function ProductCard({ product, priority = false }) {
         )}
       </Link>
       <div className="mt-3 flex flex-1 flex-col">
-        {product.code ? (
-          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Code {product.code}</p>
-        ) : null}
         <h3 className="mt-1 font-display text-lg leading-snug text-ink">
           <Link to={href} className="hover:text-maroon">
             {product.name}

@@ -74,9 +74,9 @@ test("Validation: optional PIN code", () => {
 });
 
 test("Generate booking message with multiple products and quantities", () => {
-  const p1 = productsById["1129685-p02"]; // Gemstone Hand Chain, code 1129685, price 320
-  const p2 = productsById["1159780-p03"]; // Floral Hand Chain, code 1159780, price 320
-  const p3 = productsById["1154807-p04"]; // Flower Charm Anklet, code 1154807, price 280
+  const p1 = productsById["1142639-p05"]; // Crystal Drop Anklet, code 1142639, price 200
+  const p2 = productsById["1149707-p11"]; // Studded Cuff Bracelet, code 1149707, price 350
+  const p3 = productsById["1254729-p12"]; // Linked Crystal Bracelet, code 1254729, price 450
 
   const lines = [
     { product: p1, quantity: 2 },
@@ -117,26 +117,26 @@ test("Generate booking message with multiple products and quantities", () => {
   assert.ok(message.includes(p1.name));
   assert.ok(message.includes(`Product Code: ${p1.code}`));
   assert.ok(message.includes("Quantity: 2"));
-  assert.ok(message.includes("Unit Price: ₹320"));
-  assert.ok(message.includes("Line Subtotal: ₹640"));
+  assert.ok(message.includes("Unit Price: ₹200"));
+  assert.ok(message.includes("Line Subtotal: ₹400"));
 
   // Product 2
   assert.ok(message.includes(p2.name));
   assert.ok(message.includes(`Product Code: ${p2.code}`));
   assert.ok(message.includes("Quantity: 1"));
-  assert.ok(message.includes("Unit Price: ₹320"));
-  assert.ok(message.includes("Line Subtotal: ₹320"));
+  assert.ok(message.includes("Unit Price: ₹350"));
+  assert.ok(message.includes("Line Subtotal: ₹350"));
 
   // Product 3
   assert.ok(message.includes(p3.name));
   assert.ok(message.includes(`Product Code: ${p3.code}`));
   assert.ok(message.includes("Quantity: 3"));
-  assert.ok(message.includes("Unit Price: ₹280"));
-  assert.ok(message.includes("Line Subtotal: ₹840"));
+  assert.ok(message.includes("Unit Price: ₹450"));
+  assert.ok(message.includes("Line Subtotal: ₹1,350"));
 
-  // 4. Totals: 2 + 1 + 3 = 6 pieces; 640 + 320 + 840 = 1800 INR
+  // 4. Totals: 2 + 1 + 3 = 6 pieces; 400 + 350 + 1350 = 2100 INR
   assert.ok(message.includes("*Total Pieces:* 6"));
-  assert.ok(message.includes("*Grand Total:* ₹1,800"));
+  assert.ok(message.includes("*Grand Total:* ₹2,100"));
 });
 
 test("Generate booking message with omitted optional fields", () => {
@@ -167,7 +167,7 @@ test("Generate booking message with omitted optional fields", () => {
 });
 
 test("URL encoding round-trip preserves special characters, spaces, and INR symbols", () => {
-  const p = productsById["1129685-p02"];
+  const p = productsById["1142639-p05"];
   const lines = [{ product: p, quantity: 2 }];
   const customer = {
     name: "Dia & Co.",
@@ -188,8 +188,8 @@ test("URL encoding round-trip preserves special characters, spaces, and INR symb
   assert.ok(decodedText.includes("Dia & Co."));
   assert.ok(decodedText.includes("dia+orders@example.com"));
   assert.ok(decodedText.includes("100% authentic silver & stones / handle with care! #1"));
-  assert.ok(decodedText.includes("₹320"));
-  assert.ok(decodedText.includes("₹640"));
+  assert.ok(decodedText.includes("₹200"));
+  assert.ok(decodedText.includes("₹400"));
 });
 
 test("Copy to clipboard fallback does not throw in headless environment", async () => {

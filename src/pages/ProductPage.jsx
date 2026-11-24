@@ -32,7 +32,7 @@ export default function ProductPage() {
   });
   if (!product) return <NotFound />;
 
-  const cat = categoriesBySlug[product.category];
+  const cat = categoriesBySlug[product.category] || { slug: "jewellery", name: "Jewellery" };
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
   const isAvailable = product.inStock !== false;
 
@@ -46,6 +46,12 @@ export default function ProductPage() {
         <div className="relative overflow-hidden rounded-lg bg-sand">
           <img
             src={`https://www.shriva.store/${product.image}`}
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallback) {
+                e.currentTarget.dataset.fallback = "true";
+                e.currentTarget.src = `/${product.image}`;
+              }
+            }}
             alt={`${product.name}${product.code ? ` (${product.code})` : ""} - Shriva Jewels ${cat ? cat.name : "fashion jewellery"}`}
             width="800"
             height="1067"

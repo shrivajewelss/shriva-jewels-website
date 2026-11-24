@@ -15,6 +15,12 @@ export default function CartItem({ line }) {
       <Link to={`/product/${product.id}`} className="relative shrink-0 overflow-hidden rounded-md">
         <img
           src={`https://www.shriva.store/${product.image}`}
+          onError={(e) => {
+            if (!e.currentTarget.dataset.fallback) {
+              e.currentTarget.dataset.fallback = "true";
+              e.currentTarget.src = `/${product.image}`;
+            }
+          }}
           alt={`${product.name} - Shriva Jewels ${product.category || "jewellery"}`}
           width="96"
           height="128"
@@ -32,9 +38,6 @@ export default function CartItem({ line }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex justify-between gap-3">
           <div className="min-w-0">
-            {product.code ? (
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Code {product.code}</p>
-            ) : null}
             <h3 className="font-display text-xl leading-snug">
               <Link to={`/product/${product.id}`} className="text-ink hover:text-maroon">
                 {product.name}

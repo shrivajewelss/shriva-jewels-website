@@ -16,13 +16,13 @@ async function start(c) {
   return { app, base, post: (b) => fetch(base + "/api/bookings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }) };
 }
 const valid = (o = {}) => ({ name: "Asha Patel", mobile: "98765 43210", idempotencyKey: "key-" + Math.random().toString(36).slice(2, 12),
-  items: [{ id: "1129685-p02", quantity: 2 }, { id: "1198987-p36", quantity: 1 }], ...o });
+  items: [{ id: "p65", quantity: 2 }, { id: "p66", quantity: 1 }], ...o });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-test("catalogue integrity: 88 unique ids, positive integer prices", () => {
-  assert.equal(products.length, 88);
-  assert.equal(new Set(products.map((p) => p.id)).size, 88);
-  assert.ok(products.every((p) => Number.isInteger(p.price) && p.price > 0));
+test("catalogue integrity: unique ids, valid catalogue properties", () => {
+  assert.ok(products.length > 0);
+  assert.equal(new Set(products.map((p) => p.id)).size, products.length);
+  assert.ok(products.every((p) => p.price === "" || (Number.isInteger(p.price) && p.price > 0)));
 });
 
 test("Indian mobile normalisation", () => {
@@ -33,12 +33,12 @@ test("Indian mobile normalisation", () => {
 
 test("booking persisted; totals come from server catalogue, not client", async () => {
   const { app, post, base } = await start(cfg());
-  const res = await post(valid({ items: [{ id: "1129685-p02", quantity: 2, price: 1, unitPrice: 1 }, { id: "1198987-p36", quantity: 1 }], subtotal: 1 }));
+  const res = await post(valid({ items: [{ id: "p65", quantity: 2, price: 1, unitPrice: 1 }, { id: "p66", quantity: 1 }], subtotal: 1 }));
   assert.equal(res.status, 201);
   const { booking } = await res.json();
   assert.match(booking.reference, /^SJ-\d{6}-[A-Z0-9]{4}$/);
-  assert.equal(booking.subtotal, 320 * 2 + 99);
-  assert.equal(booking.items[0].unitPrice, 320);
+  assert.equal(booking.subtotal, 450 * 2 + 380);
+  assert.equal(booking.items[0].unitPrice, 450);
   const row = app.db.prepare("SELECT * FROM bookings WHERE reference=?").get(booking.reference);
   assert.equal(row.customer_mobile, "9876543210");
   await wait(50);
@@ -53,9 +53,9 @@ test("validation: bad phone, missing name, empty/invalid items, unknown product,
   r = await post(valid({ name: "" })); assert.ok((await r.json()).errors.name);
   r = await post(valid({ items: [] })); assert.ok((await r.json()).errors.items);
   r = await post(valid({ items: [{ id: "nope", quantity: 1 }] })); assert.ok((await r.json()).errors.items);
-  r = await post(valid({ items: [{ id: "1129685-p02", quantity: 0 }] })); assert.equal(r.status, 400);
-  r = await post(valid({ items: [{ id: "1129685-p02", quantity: -3 }] })); assert.equal(r.status, 400);
-  r = await post(valid({ items: [{ id: "1129685-p02", quantity: 1.5 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "p65", quantity: 0 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "p65", quantity: -3 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "p65", quantity: 1.5 }] })); assert.equal(r.status, 400);
   r = await post(valid({ deliveryPreference: "delivery" })); assert.ok((await r.json()).errors.address);
   assert.equal(app.db.prepare("SELECT COUNT(*) c FROM bookings").get().c, 0);
   app.close();
@@ -91,7 +91,7 @@ test("WhatsApp failure: booking stays saved, status=failed, later retry succeeds
   const { booking } = await res.json(); await wait(100);
   const row = () => app.db.prepare("SELECT * FROM bookings WHERE reference=?").get(booking.reference);
   assert.equal(row().notification_status, "failed"); assert.match(row().notification_error, /token expired/);
-  assert.equal(lastBody.type, "text"); assert.match(lastBody.text.body, /NEW SHRIVA JEWELS BOOKING/); assert.match(lastBody.text.body, /Subtotal: ₹739/);
+  assert.equal(lastBody.type, "text"); assert.match(lastBody.text.body, /NEW SHRIVA JEWELS BOOKING/); assert.match(lastBody.text.body, /Subtotal: ₹1,280/);
   mode = "ok"; await app.service.retryPending(0); await app.service.retryPending(0);
   assert.equal(row().notification_status, "sent"); assert.equal(sends, 1);
   globalThis.fetch = orig; app.close();

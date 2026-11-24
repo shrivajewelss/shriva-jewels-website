@@ -184,7 +184,13 @@ export default function HeaderSearch() {
                       className="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-sand/60"
                     >
                       <img
-                        src={p.image}
+                        src={`https://www.shriva.store/${p.image}`}
+                        onError={(e) => {
+                          if (!e.currentTarget.dataset.fallback) {
+                            e.currentTarget.dataset.fallback = "true";
+                            e.currentTarget.src = `/${p.image}`;
+                          }
+                        }}
                         alt={`${p.name} - Shriva Jewels ${p.category || "jewellery"}`}
                         className="h-11 w-11 rounded-lg object-cover bg-white border border-line/50 shrink-0"
                         loading="lazy"
@@ -197,8 +203,8 @@ export default function HeaderSearch() {
                           {p.code
                             ? `Code: ${p.code}`
                             : p.category
-                            ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
-                            : ""}
+                              ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
+                              : ""}
                         </p>
                       </div>
                       <span className="text-xs sm:text-sm font-semibold text-maroon shrink-0">
@@ -280,7 +286,13 @@ export default function HeaderSearch() {
                       className="flex w-full items-center gap-3 p-2 text-left hover:bg-sand/60 rounded-lg"
                     >
                       <img
-                        src={p.image}
+                        src={`https://www.shriva.store/${p.image}`}
+                        onError={(e) => {
+                          if (!e.currentTarget.dataset.fallback) {
+                            e.currentTarget.dataset.fallback = "true";
+                            e.currentTarget.src = `/${p.image}`;
+                          }
+                        }}
                         alt={`${p.name} - Shriva Jewels ${p.category || "jewellery"}`}
                         className="h-10 w-10 rounded object-cover bg-white border border-line/50 shrink-0"
                       />
