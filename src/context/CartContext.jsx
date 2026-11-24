@@ -11,7 +11,7 @@ function load() {
     const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
     return Array.isArray(raw)
       ? raw
-          .filter((i) => productsById[i?.id])
+          .filter((i) => Boolean(productsById[i?.id]))
           .map((i) => ({ id: i.id, quantity: clamp(i.quantity) }))
       : [];
   } catch {
@@ -69,7 +69,9 @@ export function CartProvider({ children }) {
   }, []);
 
   const value = useMemo(() => {
-    const lines = items.map((i) => ({ ...i, product: productsById[i.id] }));
+    const lines = items
+      .map((i) => ({ ...i, product: productsById[i.id] }))
+      .filter((l) => Boolean(l.product));
     const hasUnavailable = lines.some((l) => l.product?.inStock === false);
     return {
       lines,
