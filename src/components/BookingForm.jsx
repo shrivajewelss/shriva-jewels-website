@@ -3,6 +3,7 @@ import { MessageCircle, Copy, Check, ExternalLink } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
 import {
   BUSINESS_WHATSAPP_NUMBER,
+  createSupabaseOrder,
   generateBookingMessage,
   copyToClipboard,
 } from "../utils/booking.js";
@@ -43,6 +44,8 @@ export default function BookingForm({ onNameChange }) {
     message: "",
   });
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -54,12 +57,14 @@ export default function BookingForm({ onNameChange }) {
     const val = e.target.value;
     setF((s) => ({ ...s, [k]: val }));
     setErrors((x) => ({ ...x, [k]: undefined }));
+    setSubmitError("");
   };
 
   async function onSubmit(e) {
     e.preventDefault();
     const v = validateForm(f);
     setErrors(v);
+    setSubmitError("");
 
     const errorKeys = Object.keys(v);
     if (errorKeys.length > 0) {
@@ -68,10 +73,22 @@ export default function BookingForm({ onNameChange }) {
     }
 
     const hasUnavailable = lines.some((l) => l.product?.inStock === false);
-    if (lines.length === 0 || hasUnavailable) return;
+    if (lines.length === 0 || hasUnavailable || submitting) return;
+
+    setSubmitting(true);
+    let orderNumber = "";
+    try {
+      const orderRes = await createSupabaseOrder({ customer: f, lines });
+      orderNumber = orderRes.orderNumber || "";
+    } catch (err) {
+      console.error("Failed to save order to Supabase:", err);
+      setSubmitError("We couldn't save your order right now. Please try again.");
+      setSubmitting(false);
+      return;
+    }
 
     const businessNumber = BUSINESS_WHATSAPP_NUMBER;
-    const message = generateBookingMessage({ customer: f, lines });
+    const message = generateBookingMessage({ customer: f, lines, orderNumber });
     const whatsappUrl = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
 
     trackBookingRequest({
@@ -87,8 +104,9 @@ export default function BookingForm({ onNameChange }) {
       // Handled gracefully via notice and manual open/copy buttons
     }
 
-    setNotice({ message, whatsappUrl });
+    setNotice({ message, whatsappUrl, orderNumber });
     setCopied(false);
+    setSubmitting(false);
   }
 
   async function handleCopy() {
@@ -225,6 +243,7 @@ export default function BookingForm({ onNameChange }) {
                       />
                       <div className="space-y-1">
                         <p className="font-medium text-maroon">
+                          {notice.orderNumber ? `Order ${notice.orderNumber} saved! ` : ""}
                           Your booking message is ready in WhatsApp. Please press Send to submit your request.
                         </p>
                         <p className="text-xs leading-relaxed text-muted">
@@ -267,6 +286,12 @@ export default function BookingForm({ onNameChange }) {
                   </div>
             )}
 
+              {submitError && (
+                <p className="text-xs text-red-700 font-medium text-center" role="alert">
+                  {submitError}
+                </p>
+              )}
+
               {lines.some((l) => l.product?.inStock === false) && (
                 <p className="text-xs text-red-700 font-medium text-center" role="alert">
                   Some items in your bag are currently out of stock. Please remove them to proceed.
@@ -276,9 +301,13 @@ export default function BookingForm({ onNameChange }) {
               <button
                 type="submit"
                 className="btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={lines.length === 0 || lines.some((l) => l.product?.inStock === false)}
+                disabled={submitting || lines.length === 0 || lines.some((l) => l.product?.inStock === false)}
               >
-                {lines.some((l) => l.product?.inStock === false) ? "Remove Unavailable Items to Book" : "Request for Booking"}
+                {submitting
+                  ? "Saving Order…"
+                  : lines.some((l) => l.product?.inStock === false)
+                    ? "Remove Unavailable Items to Book"
+                    : "Request for Booking"}
               </button>
             </form>
             );

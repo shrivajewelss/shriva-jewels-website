@@ -12,7 +12,7 @@ export function buildApp(cfg = config, log = console) {
   const db = openDatabase(cfg.databasePath);
   const provider = createProvider(cfg.whatsapp, log);
   const service = createBookingService(db, provider, log);
-  const routes = bookingRoutes(service, cfg.rateLimit);
+  const routes = bookingRoutes(service, cfg.rateLimit, cfg.catalogProvider);
   const dist = resolve("dist");
   const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
     ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".txt": "text/plain", ".xml": "application/xml", ".ico": "image/x-icon", ".webp": "image/webp" };

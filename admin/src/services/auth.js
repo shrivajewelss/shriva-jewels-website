@@ -49,6 +49,8 @@ export async function signInAdmin({ email, password }) {
       await supabase.from("audit_logs").insert({
         admin_id: user.id,
         action: "admin_login",
+        entity_type: "admin_profile",
+        entity_id: user.id,
         details: { email: user.email, timestamp: new Date().toISOString() },
       });
     } catch {
@@ -113,4 +115,17 @@ export async function requestPasswordReset(email) {
  */
 export async function updateAdminPassword(newPassword) {
   return await supabase.auth.updateUser({ password: newPassword });
+}
+
+/**
+ * Fetch all rows from public.admin_profiles.
+ */
+export async function getAdminProfiles() {
+  const { data, error } = await supabase
+    .from("admin_profiles")
+    .select("id, full_name, is_active, created_at, updated_at")
+    .order("created_at", { ascending: true });
+
+  if (error) return { data: [], error: error.message };
+  return { data: data || [], error: null };
 }

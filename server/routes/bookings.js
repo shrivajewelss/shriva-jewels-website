@@ -1,6 +1,6 @@
-import { validateBooking } from "../validation/booking.js";
+import { fetchSupabaseCatalogById, validateBooking } from "../validation/booking.js";
 
-export function bookingRoutes(service, rateLimit) {
+export function bookingRoutes(service, rateLimit, catalogProvider = fetchSupabaseCatalogById) {
   const hits = new Map();
   const limited = (ip) => {
     const now = Date.now();
@@ -13,7 +13,8 @@ export function bookingRoutes(service, rateLimit) {
   return {
     // POST /api/bookings
     async create({ body, ip }) {
-      const v = validateBooking(body);
+      const catalogById = await catalogProvider();
+      const v = validateBooking(body, catalogById);
       if (!v.ok) return { status: 400, json: { error: "validation_failed", errors: v.errors } };
       if (limited(ip)) return { status: 429, json: { error: "rate_limited", message: "Too many requests. Please try again later." } };
       try {

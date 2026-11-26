@@ -10,6 +10,7 @@ import {
   adjustStock,
   getStockMovements,
   LOW_STOCK_THRESHOLD,
+  MOVEMENT_TYPES,
 } from "../services/inventory.js";
 import { formatDateTime } from "../utils/date.js";
 
@@ -25,7 +26,7 @@ export default function Inventory() {
     open: false,
     item: null,
     newQuantity: 0,
-    movementType: "manual_adjustment",
+    movementType: "adjustment",
     reason: "",
     saving: false,
     error: null,
@@ -53,7 +54,7 @@ export default function Inventory() {
       open: true,
       item,
       newQuantity: item.quantity,
-      movementType: "manual_adjustment",
+      movementType: "adjustment",
       reason: "",
       saving: false,
       error: null,
@@ -97,31 +98,36 @@ export default function Inventory() {
       header: "Current Stock",
       accessor: "quantity",
       sortable: true,
-      render: (row) => (
-        <span
-          className={`font-display font-bold text-base px-2.5 py-0.5 rounded ${
-            row.quantity === 0
-              ? "bg-red-100 text-red-800"
-              : row.quantity <= LOW_STOCK_THRESHOLD
-              ? "bg-amber-100 text-amber-800"
-              : "text-emerald-800"
-          }`}
-        >
-          {row.quantity} units
-        </span>
-      ),
+      render: (row) => {
+        const threshold = row.low_stock_threshold ?? LOW_STOCK_THRESHOLD;
+        return (
+          <span
+            className={`font-display font-bold text-base px-2.5 py-0.5 rounded ${
+              row.quantity === 0
+                ? "bg-red-100 text-red-800"
+                : row.quantity <= threshold
+                ? "bg-amber-100 text-amber-800"
+                : "text-emerald-800"
+            }`}
+          >
+            {row.quantity} units
+          </span>
+        );
+      },
     },
     {
       header: "Stock Alert",
       accessor: "is_low_stock",
-      render: (row) =>
-        row.quantity === 0 ? (
+      render: (row) => {
+        const threshold = row.low_stock_threshold ?? LOW_STOCK_THRESHOLD;
+        return row.quantity === 0 ? (
           <Badge variant="red">Out of Stock</Badge>
-        ) : row.quantity <= LOW_STOCK_THRESHOLD ? (
-          <Badge variant="amber">Low Stock Warning</Badge>
+        ) : row.quantity <= threshold ? (
+          <Badge variant="amber">Low Stock (≤ {threshold})</Badge>
         ) : (
           <Badge variant="emerald">Healthy</Badge>
-        ),
+        );
+      },
     },
     {
       header: "Last Updated",
@@ -184,7 +190,7 @@ export default function Inventory() {
       accessor: "new_stock",
       align: "center",
       render: (row) => {
-        const diff = (row.new_stock ?? 0) - (row.previous_stock ?? 0);
+        const diff = row.quantity_delta ?? (row.new_stock ?? 0) - (row.previous_stock ?? 0);
         return (
           <div className="inline-flex items-center gap-1.5 font-display font-medium text-sm">
             <span>{row.new_stock}</span>
@@ -194,6 +200,18 @@ export default function Inventory() {
           </div>
         );
       },
+    },
+    {
+      header: "Note & Admin",
+      accessor: "note",
+      render: (row) => (
+        <div className="max-w-xs text-xs text-muted">
+          <p className="truncate">{row.note || "—"}</p>
+          {row.admin_profiles?.full_name && (
+            <p className="text-[10px] text-muted/80">By: {row.admin_profiles.full_name}</p>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -307,11 +325,11 @@ export default function Inventory() {
               }
               className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
             >
-              <option value="manual_adjustment">Manual Inventory Adjustment</option>
-              <option value="physical_audit">Physical Audit / Count Correction</option>
-              <option value="damaged_stock">Damaged / Defective Stock</option>
-              <option value="return_intake">Customer Return Intake</option>
-              <option value="other">Other Internal Reason</option>
+              {MOVEMENT_TYPES.map((mt) => (
+                <option key={mt.value} value={mt.value}>
+                  {mt.label}
+                </option>
+              ))}
             </select>
           </div>
 

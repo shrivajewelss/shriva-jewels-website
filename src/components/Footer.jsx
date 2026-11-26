@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Phone, Mail, MessageCircle } from "lucide-react";
-import { categories } from "../data/categories.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import {
   BUSINESS_WHATSAPP_NUMBER,
   CONTACT_PHONE,
@@ -27,6 +27,7 @@ function PinterestIcon({ size = 16, className = "" }) {
 }
 
 export default function Footer() {
+  const { categories } = useCatalog();
   const li = "text-sm text-cream/80 transition-colors hover:text-white hover:underline underline-offset-4";
 
   return (

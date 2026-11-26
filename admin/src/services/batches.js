@@ -170,37 +170,16 @@ export async function createStockBatch({
       purchase_cost: cost,
     });
 
-    // Check & update inventory for this product
-    const { data: curInv } = await supabase
-      .from("inventory")
-      .select("id, quantity")
-      .eq("product_id", item.product_id)
-      .single();
-
-    const prevStock = curInv?.quantity ?? 0;
-    const newStock = prevStock + qty;
-
-    if (curInv) {
-      await supabase
-        .from("inventory")
-        .update({ quantity: newStock, updated_at: new Date().toISOString() })
-        .eq("id", curInv.id);
-    } else {
-      await supabase.from("inventory").insert([
-        { product_id: item.product_id, quantity: newStock },
-      ]);
+    // Update inventory & record stock_movements via Supabase adjust_inventory RPC
+    const { error: rpcErr } = await supabase.rpc("adjust_inventory", {
+      p_product_id: item.product_id,
+      p_delta: qty,
+      p_movement_type: "purchase",
+      p_note: `Batch ${batch_number} from ${supplier_name}`,
+    });
+    if (rpcErr) {
+      console.warn("Batch inventory adjust warning:", rpcErr.message);
     }
-
-    // Record stock movement
-    await supabase.from("stock_movements").insert([
-      {
-        product_id: item.product_id,
-        movement_type: "batch_restock",
-        previous_stock: prevStock,
-        new_stock: newStock,
-        admin_id: adminId,
-      },
-    ]);
   }
 
   if (batchItemsToInsert.length > 0) {

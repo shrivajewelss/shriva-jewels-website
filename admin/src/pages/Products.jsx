@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Edit2, Archive, Trash2, Search, ExternalLink, Gem, Filter } from "lucide-react";
+import { Plus, Edit2, Archive, Trash2, Search, Upload } from "lucide-react";
 import DataTable from "../components/DataTable.jsx";
 import Modal from "../components/Modal.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import Button from "../components/Button.jsx";
 import Badge from "../components/Badge.jsx";
-import ImageUploader from "../components/ImageUploader.jsx";
+import { uploadProductImage } from "../services/cloudinary.js";
 import {
   getProducts,
   createProduct,
@@ -37,12 +37,15 @@ export default function Products() {
     description: "",
     sku: "",
     price: "",
+    sale_price: "",
     category_id: "",
-    status: "active",
+    status: "draft",
     is_featured: false,
+    units: 0,
+    image_url: "",
     initialStock: 0,
   });
-  const [formImages, setFormImages] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
 
@@ -85,12 +88,14 @@ export default function Products() {
       description: "",
       sku: "",
       price: "",
+      sale_price: "",
       category_id: categories[0]?.id || "",
       status: "active",
       is_featured: false,
+      units: 10,
+      image_url: "",
       initialStock: 10,
     });
-    setFormImages([]);
     setFormError(null);
     setModalOpen(true);
   };
@@ -102,21 +107,39 @@ export default function Products() {
       slug: p.slug || "",
       description: p.description || "",
       sku: p.sku || "",
-      price: p.price || "",
+      price: p.price ?? "",
+      sale_price: p.sale_price ?? "",
       category_id: p.category_id || "",
-      status: p.status || "active",
+      status: p.status || "draft",
       is_featured: Boolean(p.is_featured),
+      units: p.units ?? p.stock_quantity ?? 0,
+      image_url: p.image_url || "",
       initialStock: p.stock_quantity || 0,
     });
-    setFormImages((p.images || []).map((img) => img.image_url || img));
     setFormError(null);
     setModalOpen(true);
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    setFormError(null);
+    try {
+      const res = await uploadProductImage(file);
+      setFormData((prev) => ({ ...prev, image_url: res.secure_url }));
+    } catch (err) {
+      setFormError(err.message || "Failed to upload product image.");
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.price) {
-      setFormError("Product name and selling price are required.");
+    if (!formData.name || !formData.sku || formData.price === "") {
+      setFormError("Product name, SKU, and selling price are required.");
       return;
     }
 
@@ -125,9 +148,9 @@ export default function Products() {
 
     let res;
     if (editingProduct) {
-      res = await updateProduct(editingProduct.id, formData, formImages);
+      res = await updateProduct(editingProduct.id, formData);
     } else {
-      res = await createProduct(formData, formImages, formData.initialStock);
+      res = await createProduct(formData, formData.initialStock);
     }
 
     if (res.error) {
@@ -192,7 +215,14 @@ export default function Products() {
       accessor: "price",
       sortable: true,
       render: (row) => (
-        <span className="font-display font-medium text-maroon">{formatCurrency(row.price)}</span>
+        <div>
+          <span className="font-display font-medium text-maroon">{formatCurrency(row.price)}</span>
+          {row.sale_price != null && (
+            <p className="text-[11px] text-emerald-700 font-medium">
+              Sale: {formatCurrency(row.sale_price)}
+            </p>
+          )}
+        </div>
       ),
     },
     {
@@ -201,10 +231,11 @@ export default function Products() {
       sortable: true,
       render: (row) => {
         const qty = row.stock_quantity;
+        const threshold = row.low_stock_threshold ?? 5;
         return (
           <span
             className={`text-xs font-semibold px-2 py-0.5 rounded ${
-              qty === 0 ? "bg-red-100 text-red-800" : qty <= 5 ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-800"
+              qty === 0 ? "bg-red-100 text-red-800" : qty <= threshold ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-800"
             }`}
           >
             {qty} units
@@ -216,7 +247,7 @@ export default function Products() {
       header: "Status",
       accessor: "status",
       render: (row) => (
-        <Badge variant={row.status === "active" ? "emerald" : "gray"}>
+        <Badge variant={row.status === "active" ? "emerald" : row.status === "draft" ? "amber" : "gray"}>
           {row.status}
         </Badge>
       ),
@@ -324,6 +355,7 @@ export default function Products() {
           className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs text-ink focus:border-maroon focus:outline-none"
         >
           <option value="">All Statuses</option>
+          <option value="draft">Draft</option>
           <option value="active">Active</option>
           <option value="archived">Archived</option>
         </select>
@@ -356,7 +388,7 @@ export default function Products() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
                 Product Name *
@@ -379,9 +411,25 @@ export default function Products() {
                 type="number"
                 required
                 min="0"
+                step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="e.g. 450"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
+                Sale Price (₹ INR)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.sale_price}
+                onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
+                placeholder="Optional offer price"
                 className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
               />
             </div>
@@ -408,10 +456,11 @@ export default function Products() {
 
             <div>
               <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
-                SKU / Internal Identifier
+                SKU / Internal Identifier *
               </label>
               <input
                 type="text"
+                required
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 placeholder="e.g. SJ-RNG-004"
@@ -428,9 +477,70 @@ export default function Products() {
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
               >
+                <option value="draft">Draft (Unpublished)</option>
                 <option value="active">Active (Visible)</option>
                 <option value="archived">Archived (Hidden)</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
+                URL Slug
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="auto-generated-from-name"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
+                Units
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.units}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    units: e.target.value,
+                    initialStock: editingProduct ? formData.initialStock : e.target.value,
+                  })
+                }
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted mb-1">
+                Product Image URL
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  placeholder="https://... or /images/..."
+                  className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-maroon focus:outline-none"
+                />
+                <label className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-line bg-cream/60 px-2.5 py-2 text-xs font-medium text-ink hover:border-maroon hover:text-maroon transition-colors">
+                  <Upload size={14} />
+                  <span>{uploadingImage ? "..." : "Upload"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    onChange={handleImageUpload}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
             </div>
           </div>
 
@@ -465,10 +575,22 @@ export default function Products() {
             />
           </div>
 
-          {/* Product Images (Max 5) */}
-          <div className="border-t border-line/60 pt-4">
-            <ImageUploader images={formImages} onChange={setFormImages} maxImages={5} />
-          </div>
+          {formData.image_url && (
+            <div className="flex items-center gap-3 rounded-lg border border-line/60 bg-cream/30 p-3">
+              <img
+                src={
+                  formData.image_url.startsWith("http") ||
+                  formData.image_url.startsWith("/") ||
+                  formData.image_url.startsWith("blob:")
+                    ? formData.image_url
+                    : `/${formData.image_url}`
+                }
+                alt="Product preview"
+                className="h-16 w-14 rounded-md object-cover border border-line bg-sand"
+              />
+              <p className="text-xs text-muted truncate flex-1">{formData.image_url}</p>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 pt-2">
             <input

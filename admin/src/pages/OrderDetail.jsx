@@ -209,8 +209,8 @@ export default function OrderDetail() {
                 <p className="text-xs text-muted">Date: {formatDate(order.created_at)}</p>
                 <p className="text-xs text-muted font-mono">Order Ref: {order.order_number}</p>
                 <div className="mt-2">
-                  <Badge variant={order.payment_status === "Paid" ? "emerald" : "amber"}>
-                    Payment: {order.payment_status}
+                  <Badge variant={String(order.payment_status || "").toLowerCase() === "paid" ? "emerald" : "amber"}>
+                    Payment: {PAYMENT_STATUSES.find((p) => p.value === String(order.payment_status || "").toLowerCase())?.label || order.payment_status}
                   </Badge>
                 </div>
               </div>
@@ -361,6 +361,15 @@ export default function OrderDetail() {
                   </p>
                 </div>
               </div>
+
+              {order.customer_note && (
+                <div className="rounded-lg border border-line bg-cream/40 p-2.5 text-xs">
+                  <p className="font-semibold uppercase text-[10px] text-muted tracking-wider mb-0.5">
+                    Customer Note
+                  </p>
+                  <p className="text-ink leading-relaxed">{order.customer_note}</p>
+                </div>
+              )}
             </div>
           </Card>
         </div>

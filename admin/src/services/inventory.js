@@ -3,6 +3,14 @@ import { logAdminActivity } from "./audit.js";
 
 export const LOW_STOCK_THRESHOLD = 5;
 
+export const MOVEMENT_TYPES = [
+  { value: "adjustment", label: "Manual Adjustment" },
+  { value: "purchase", label: "Purchase / Restock" },
+  { value: "return", label: "Customer Return" },
+  { value: "sale", label: "Sale Deduction" },
+  { value: "damaged", label: "Damaged / Defective" },
+];
+
 export async function getInventoryList({ search = "", lowStockOnly = false } = {}) {
   const { data, error } = await supabase
     .from("inventory")
@@ -10,14 +18,18 @@ export async function getInventoryList({ search = "", lowStockOnly = false } = {
       id,
       product_id,
       quantity,
+      low_stock_threshold,
       updated_at,
       products (
         id,
         name,
         sku,
         price,
+        sale_price,
         status,
         category_id,
+        units,
+        image_url,
         categories ( name )
       )
     `)
@@ -25,18 +37,23 @@ export async function getInventoryList({ search = "", lowStockOnly = false } = {
 
   if (error) return { data: [], error: error.message };
 
-  let list = (data || []).map((row) => ({
-    id: row.id,
-    product_id: row.product_id,
-    quantity: row.quantity ?? 0,
-    updated_at: row.updated_at,
-    product_name: row.products?.name || "Unknown Product",
-    sku: row.products?.sku || "—",
-    price: Number(row.products?.price) || 0,
-    status: row.products?.status || "active",
-    category_name: row.products?.categories?.name || "Uncategorized",
-    is_low_stock: (row.quantity ?? 0) <= LOW_STOCK_THRESHOLD,
-  }));
+  let list = (data || []).map((row) => {
+    const threshold = row.low_stock_threshold ?? LOW_STOCK_THRESHOLD;
+    const quantity = row.quantity ?? 0;
+    return {
+      id: row.id,
+      product_id: row.product_id,
+      quantity,
+      low_stock_threshold: threshold,
+      updated_at: row.updated_at,
+      product_name: row.products?.name || "Unknown Product",
+      sku: row.products?.sku || "—",
+      price: Number(row.products?.price) || 0,
+      status: row.products?.status || "draft",
+      category_name: row.products?.categories?.name || "Uncategorized",
+      is_low_stock: quantity <= threshold,
+    };
+  });
 
   if (lowStockOnly) {
     list = list.filter((item) => item.is_low_stock);
@@ -65,53 +82,49 @@ export async function adjustStock({ productId, newQuantity, movementType = "adju
     .eq("product_id", productId)
     .single();
 
-  if (fetchErr && fetchErr.code !== "PGRST116") {
+  if (fetchErr) {
     return { error: fetchErr.message };
   }
 
   const prevStock = currentInv?.quantity ?? 0;
   const delta = targetQty - prevStock;
 
-  // 2. Update or insert inventory
-  let updateErr = null;
-  if (currentInv) {
-    const { error } = await supabase
-      .from("inventory")
-      .update({ quantity: targetQty, updated_at: new Date().toISOString() })
-      .eq("id", currentInv.id);
-    updateErr = error;
-  } else {
-    const { error } = await supabase.from("inventory").insert([
-      { product_id: productId, quantity: targetQty },
-    ]);
-    updateErr = error;
+  if (delta === 0) {
+    return { data: { previous_stock: prevStock, new_stock: targetQty }, error: null };
   }
 
-  if (updateErr) return { error: updateErr.message };
+  const validTypes = new Set(["purchase", "sale", "return", "adjustment", "damaged"]);
+  const normalizedType = validTypes.has(movementType) ? movementType : "adjustment";
 
-  // 3. Record stock movement
-  const { data: session } = await supabase.auth.getSession();
-  await supabase.from("stock_movements").insert([
-    {
-      product_id: productId,
-      movement_type: movementType,
-      previous_stock: prevStock,
-      new_stock: targetQty,
-      admin_id: session?.session?.user?.id || null,
-    },
-  ]);
-
-  // 4. Record audit log
-  await logAdminActivity("inventory_adjustment", {
-    product_id: productId,
-    previous_stock: prevStock,
-    new_stock: targetQty,
-    delta,
-    movement_type: movementType,
-    reason,
+  // 2. Call Supabase SECURITY DEFINER RPC adjust_inventory
+  const { data: updatedQty, error: rpcErr } = await supabase.rpc("adjust_inventory", {
+    p_product_id: productId,
+    p_delta: delta,
+    p_movement_type: normalizedType,
+    p_note: reason || null,
   });
 
-  return { data: { previous_stock: prevStock, new_stock: targetQty }, error: null };
+  if (rpcErr) return { error: rpcErr.message };
+
+  // Keep products.units in sync so storefront anon reads reflect live stock
+  const finalQty = updatedQty ?? targetQty;
+  await supabase.from("products").update({ units: finalQty, updated_at: new Date().toISOString() }).eq("id", productId);
+
+  // 3. Record audit log
+  await logAdminActivity(
+    "inventory_adjustment",
+    {
+      product_id: productId,
+      previous_stock: prevStock,
+      new_stock: updatedQty ?? targetQty,
+      quantity_delta: delta,
+      movement_type: normalizedType,
+      note: reason || null,
+    },
+    { entityType: "inventory", entityId: currentInv?.id || productId }
+  );
+
+  return { data: { previous_stock: prevStock, new_stock: updatedQty ?? targetQty }, error: null };
 }
 
 export async function getStockMovements(productId = null, limit = 50) {
@@ -120,12 +133,15 @@ export async function getStockMovements(productId = null, limit = 50) {
     .select(`
       id,
       product_id,
+      admin_id,
       movement_type,
+      quantity_delta,
       previous_stock,
       new_stock,
-      admin_id,
+      note,
       created_at,
-      products ( id, name, sku )
+      products ( id, name, sku ),
+      admin_profiles ( id, full_name )
     `)
     .order("created_at", { ascending: false })
     .limit(limit);

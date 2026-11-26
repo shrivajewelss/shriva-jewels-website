@@ -61,6 +61,7 @@ export async function uploadProductImage(file) {
       width: 800,
       height: 1067,
       format: file.type.split("/")[1] || "jpg",
+      bytes: file.size ?? null,
       isLocalFallback: true,
       notice: "Cloudinary credentials not yet configured in .env. Stored as local preview.",
     };
@@ -88,6 +89,7 @@ export async function uploadProductImage(file) {
       width: data.width,
       height: data.height,
       format: data.format,
+      bytes: data.bytes ?? file.size ?? null,
       isLocalFallback: false,
     };
   } catch (err) {

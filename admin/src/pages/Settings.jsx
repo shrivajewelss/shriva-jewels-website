@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Settings as SettingsIcon,
   ShieldCheck,
@@ -13,17 +13,30 @@ import {
 import Card from "../components/Card.jsx";
 import Button from "../components/Button.jsx";
 import Badge from "../components/Badge.jsx";
-import { updateAdminPassword } from "../services/auth.js";
+import { getAdminProfiles, updateAdminPassword } from "../services/auth.js";
 import { isCloudinaryConfigured } from "../services/cloudinary.js";
 import { isSupabaseConfigured } from "../services/supabase.js";
 import { BUSINESS_DETAILS } from "../utils/invoice.js";
+import { formatDate } from "../utils/date.js";
 
 export default function Settings() {
+  const [adminProfiles, setAdminProfiles] = useState([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState(null);
   const [passwordError, setPasswordError] = useState(null);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    async function loadProfiles() {
+      setLoadingProfiles(true);
+      const res = await getAdminProfiles();
+      if (res.data) setAdminProfiles(res.data);
+      setLoadingProfiles(false);
+    }
+    loadProfiles();
+  }, []);
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
@@ -92,26 +105,31 @@ export default function Settings() {
         {/* Authorized Admin Profiles */}
         <Card
           title="Authorized Administrator Roster"
-          subtitle="Managed in public.admin_profiles table"
+          subtitle="Live rows from public.admin_profiles"
         >
           <div className="space-y-3">
-            {[
-              { name: "Dhrumi Mistry", role: "Primary Administrator" },
-              { name: "Princy Dholu", role: "Administrator" },
-              { name: "Aradhana Dholu", role: "Administrator" },
-              { name: "Shriva Jewels", role: "Master Store Account" },
-            ].map((adm, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between rounded-lg border border-line bg-cream/40 p-3"
-              >
-                <div>
-                  <p className="font-semibold text-sm text-ink">{adm.name}</p>
-                  <p className="text-[11px] text-muted">{adm.role}</p>
+            {loadingProfiles ? (
+              <p className="text-xs text-muted py-4 text-center">Loading administrator profiles...</p>
+            ) : adminProfiles.length === 0 ? (
+              <p className="text-xs text-muted py-4 text-center">No rows found in admin_profiles.</p>
+            ) : (
+              adminProfiles.map((adm) => (
+                <div
+                  key={adm.id}
+                  className="flex items-center justify-between rounded-lg border border-line bg-cream/40 p-3"
+                >
+                  <div>
+                    <p className="font-semibold text-sm text-ink">{adm.full_name}</p>
+                    <p className="text-[11px] text-muted font-mono">
+                      ID: {adm.id.slice(0, 8)}... · Added {formatDate(adm.created_at)}
+                    </p>
+                  </div>
+                  <Badge variant={adm.is_active ? "emerald" : "gray"}>
+                    {adm.is_active ? "Authorized & Active" : "Inactive"}
+                  </Badge>
                 </div>
-                <Badge variant="emerald">Authorized &amp; Active</Badge>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 

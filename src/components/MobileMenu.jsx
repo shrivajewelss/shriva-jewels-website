@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
 import { X, Instagram, Facebook, Phone, Mail, MessageCircle, Search, ShoppingBag } from "lucide-react";
 import { navLinks } from "./Header.jsx";
-import { categories } from "../data/categories.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import { useCart } from "../context/CartContext.jsx";
 import {
   INSTAGRAM_URL,
@@ -36,6 +36,7 @@ export default function MobileMenu({ open, onClose }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { count } = useCart();
+  const { categories } = useCatalog();
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 

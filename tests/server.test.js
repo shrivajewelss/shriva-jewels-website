@@ -2,11 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildApp } from "../server/index.js";
 import { normalizeIndianMobile } from "../server/validation/booking.js";
-import { products } from "../src/data/products.js";
+
+const testCatalog = {
+  "crystal-bezel-tennis-bracelet": { id: "crystal-bezel-tennis-bracelet", code: "p65", name: "Crystal Bezel Tennis Bracelet", price: 450, inStock: true },
+  "triple-layer-chain-crystal-bangle": { id: "triple-layer-chain-crystal-bangle", code: "p66", name: "Triple Layer Chain & Crystal Bangle", price: 380, inStock: true },
+};
 
 const silent = { info() {}, warn() {}, error() {} };
 const cfg = (wa = {}, rl = 50) => ({
   port: 0, databasePath: ":memory:", rateLimit: { windowMs: 3600e3, max: rl },
+  catalogProvider: async () => testCatalog,
   whatsapp: { provider: "mock", businessNumber: "919999999999", accessToken: "", phoneNumberId: "", templateName: "", templateLang: "en", apiVersion: "v21.0", ...wa },
 });
 async function start(c) {
@@ -16,13 +21,14 @@ async function start(c) {
   return { app, base, post: (b) => fetch(base + "/api/bookings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }) };
 }
 const valid = (o = {}) => ({ name: "Asha Patel", mobile: "98765 43210", idempotencyKey: "key-" + Math.random().toString(36).slice(2, 12),
-  items: [{ id: "p65", quantity: 2 }, { id: "p66", quantity: 1 }], ...o });
+  items: [{ id: "crystal-bezel-tennis-bracelet", quantity: 2 }, { id: "triple-layer-chain-crystal-bangle", quantity: 1 }], ...o });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-test("catalogue integrity: unique ids, valid catalogue properties", () => {
-  assert.ok(products.length > 0);
-  assert.equal(new Set(products.map((p) => p.id)).size, products.length);
-  assert.ok(products.every((p) => p.price === "" || (Number.isInteger(p.price) && p.price > 0)));
+test("catalogue fixture integrity: unique ids, valid catalogue properties", () => {
+  const list = Object.values(testCatalog);
+  assert.ok(list.length > 0);
+  assert.equal(new Set(list.map((p) => p.id)).size, list.length);
+  assert.ok(list.every((p) => p.price === "" || (Number.isInteger(p.price) && p.price > 0)));
 });
 
 test("Indian mobile normalisation", () => {
@@ -33,7 +39,7 @@ test("Indian mobile normalisation", () => {
 
 test("booking persisted; totals come from server catalogue, not client", async () => {
   const { app, post, base } = await start(cfg());
-  const res = await post(valid({ items: [{ id: "p65", quantity: 2, price: 1, unitPrice: 1 }, { id: "p66", quantity: 1 }], subtotal: 1 }));
+  const res = await post(valid({ items: [{ id: "crystal-bezel-tennis-bracelet", quantity: 2, price: 1, unitPrice: 1 }, { id: "triple-layer-chain-crystal-bangle", quantity: 1 }], subtotal: 1 }));
   assert.equal(res.status, 201);
   const { booking } = await res.json();
   assert.match(booking.reference, /^SJ-\d{6}-[A-Z0-9]{4}$/);
@@ -53,9 +59,9 @@ test("validation: bad phone, missing name, empty/invalid items, unknown product,
   r = await post(valid({ name: "" })); assert.ok((await r.json()).errors.name);
   r = await post(valid({ items: [] })); assert.ok((await r.json()).errors.items);
   r = await post(valid({ items: [{ id: "nope", quantity: 1 }] })); assert.ok((await r.json()).errors.items);
-  r = await post(valid({ items: [{ id: "p65", quantity: 0 }] })); assert.equal(r.status, 400);
-  r = await post(valid({ items: [{ id: "p65", quantity: -3 }] })); assert.equal(r.status, 400);
-  r = await post(valid({ items: [{ id: "p65", quantity: 1.5 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "crystal-bezel-tennis-bracelet", quantity: 0 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "crystal-bezel-tennis-bracelet", quantity: -3 }] })); assert.equal(r.status, 400);
+  r = await post(valid({ items: [{ id: "crystal-bezel-tennis-bracelet", quantity: 1.5 }] })); assert.equal(r.status, 400);
   r = await post(valid({ deliveryPreference: "delivery" })); assert.ok((await r.json()).errors.address);
   assert.equal(app.db.prepare("SELECT COUNT(*) c FROM bookings").get().c, 0);
   app.close();

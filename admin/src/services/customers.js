@@ -73,8 +73,9 @@ export async function getCustomerDetails(identifier) {
       total_amount,
       payment_status,
       order_status,
+      customer_note,
       created_at,
-      order_items ( id, product_id, sku, quantity, unit_price, subtotal )
+      order_items ( id, product_id, product_name, sku, quantity, unit_price, subtotal )
     `)
     .or(`phone.eq.${identifier},email.eq.${identifier}`)
     .order("created_at", { ascending: false });

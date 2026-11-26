@@ -1,17 +1,18 @@
 import { Link } from "react-router-dom";
+import { resolveImageUrl, resolveFallbackImageUrl } from "../utils/image.js";
 
 export default function CategoryCard({ category }) {
   return (
     <Link to={`/category/${category.slug}`} className="group relative block overflow-hidden rounded-lg bg-sand">
       <img
-        src={`https://www.shriva.store/${category.image}`}
+        src={resolveImageUrl(category.image)}
         onError={(e) => {
           if (!e.currentTarget.dataset.fallback) {
             e.currentTarget.dataset.fallback = "true";
-            e.currentTarget.src = `/${category.image}`;
+            e.currentTarget.src = resolveFallbackImageUrl(category.image);
           }
         }}
-        alt={`Shriva Jewels ${category.name} Collection - ${category.description}`}
+        alt={`Shriva Jewels ${category.name} Collection${category.description ? ` - ${category.description}` : ""}`}
         loading="lazy"
         width="800"
         height="1067"

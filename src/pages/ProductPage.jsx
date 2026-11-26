@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { productsById, products } from "../data/products.js";
-import { categoriesBySlug } from "../data/categories.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import { useCart } from "../context/CartContext.jsx";
 import { usePageMeta } from "../hooks/usePageMeta.js";
 import { formatPrice } from "../utils/currency.js";
 import { trackViewItem, trackAddToCart } from "../utils/analytics.js";
+import { resolveImageUrl, resolveFallbackImageUrl } from "../utils/image.js";
 import QuantitySelector from "../components/QuantitySelector.jsx";
 import ProductGrid from "../components/ProductGrid.jsx";
+import LoadingState from "../components/LoadingState.jsx";
 import NotFound from "./NotFound.jsx";
 
 export default function ProductPage() {
   const { productId } = useParams();
-  const product = productsById[productId];
+  const { findProduct, products, categoriesBySlug, loading } = useCatalog();
+  const product = findProduct(productId);
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -28,8 +30,9 @@ export default function ProductPage() {
       ? `${product.name}, ${product.code ? `code ${product.code}, ` : ""}${product.category || "jewellery"}, buy ${product.name} online, Shriva Jewels ${product.name}, fashion ${product.category || "jewellery"} price ${formatPrice(product.price)}`
       : undefined,
     path: product ? `/product/${product.id}` : undefined,
-    noindex: !product,
+    noindex: !loading && !product,
   });
+  if (loading && !product) return <LoadingState label="Loading product…" />;
   if (!product) return <NotFound />;
 
   const cat = categoriesBySlug[product.category] || { slug: "jewellery", name: "Jewellery" };
@@ -45,11 +48,11 @@ export default function ProductPage() {
       <div className="mt-6 grid gap-10 md:grid-cols-2 lg:gap-16">
         <div className="relative overflow-hidden rounded-lg bg-sand">
           <img
-            src={`https://www.shriva.store/${product.image}`}
+            src={resolveImageUrl(product.image)}
             onError={(e) => {
               if (!e.currentTarget.dataset.fallback) {
                 e.currentTarget.dataset.fallback = "true";
-                e.currentTarget.src = `/${product.image}`;
+                e.currentTarget.src = resolveFallbackImageUrl(product.image);
               }
             }}
             alt={`${product.name}${product.code ? ` (${product.code})` : ""} - Shriva Jewels ${cat ? cat.name : "fashion jewellery"}`}
@@ -75,12 +78,20 @@ export default function ProductPage() {
           ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <p className="font-display text-3xl text-maroon">{formatPrice(product.price)}</p>
+            {product.originalPrice != null && (
+              <p className="font-display text-xl text-muted line-through">
+                {formatPrice(product.originalPrice)}
+              </p>
+            )}
             {!isAvailable && (
               <span className="inline-flex items-center rounded-full border border-maroon/20 bg-maroon/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-maroon">
                 Out of Stock
               </span>
             )}
           </div>
+          {product.description && (
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-ink/85">{product.description}</p>
+          )}
           <div className="mt-6 flex flex-wrap items-center gap-4">
             {isAvailable ? (
               <>

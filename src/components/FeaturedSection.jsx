@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
-import { products, productsById } from "../data/products.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import ProductGrid from "./ProductGrid.jsx";
 
-// Featured pieces from the active catalogue
-const FEATURED = ["p65", "p66", "p70", "p71", "p83", "p84", "p86", "p88"];
-
 export default function FeaturedSection() {
-  const featuredProducts = FEATURED.map((id) => productsById[id]).filter(Boolean);
+  const { products } = useCatalog();
+  const featuredProducts = products.filter((p) => p.isFeatured);
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8);
 
   return (

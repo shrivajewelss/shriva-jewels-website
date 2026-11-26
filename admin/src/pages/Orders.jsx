@@ -32,13 +32,15 @@ export default function Orders() {
   }, [statusFilter, paymentFilter]);
 
   const getOrderStatusBadge = (status) => {
-    const s = ORDER_STATUSES.find((item) => item.value === status);
-    return <Badge variant={s?.color || "default"}>{status}</Badge>;
+    const normalized = String(status || "").toLowerCase();
+    const s = ORDER_STATUSES.find((item) => item.value === normalized);
+    return <Badge variant={s?.color || "default"}>{s?.label || status}</Badge>;
   };
 
   const getPaymentStatusBadge = (status) => {
-    const s = PAYMENT_STATUSES.find((item) => item.value === status);
-    return <Badge variant={s?.color || "default"}>{status}</Badge>;
+    const normalized = String(status || "").toLowerCase();
+    const s = PAYMENT_STATUSES.find((item) => item.value === normalized);
+    return <Badge variant={s?.color || "default"}>{s?.label || status}</Badge>;
   };
 
   const columns = [

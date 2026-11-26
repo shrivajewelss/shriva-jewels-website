@@ -1,33 +1,45 @@
 import { Instagram } from "lucide-react";
 import { INSTAGRAM_URL } from "../utils/booking.js";
-
-// Same six tiles as the live homepage. They are catalogue photos linking to the profile —
-// no posts, likes or follower counts are fabricated.
-const tiles = [
-  { id: "p05", alt: "Shriva Jewels Flower Charm Anklet featured on Instagram" },
-  { id: "p12", alt: "Shriva Jewels Crystal Drop Earrings featured on Instagram" },
-  { id: "p19", alt: "Shriva Jewels Beaded Charm Bracelet featured on Instagram" },
-  { id: "p30", alt: "Shriva Jewels Twisted Gold Bangle featured on Instagram" },
-  { id: "p55", alt: "Shriva Jewels Delicate Chain Necklace featured on Instagram" },
-  { id: "p45", alt: "Shriva Jewels Sparkling Cocktail Ring featured on Instagram" },
-];
+import { useCatalog } from "../context/CatalogContext.jsx";
+import { resolveImageUrl } from "../utils/image.js";
 
 export default function InstagramSection() {
+  const { products } = useCatalog();
+  const tiles = products.filter((p) => p.image).slice(0, 6);
+
+  if (tiles.length === 0) return null;
+
   return (
     <section className="container-page pt-24" aria-labelledby="ig-h">
       <p className="eyebrow text-center">Follow along</p>
       <h2 id="ig-h" className="mt-2 text-center text-4xl sm:text-5xl">@shriva._jewels</h2>
       <ul className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-6">
-        {tiles.map((t) => (
-          <li key={t.id}>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Open Shriva Jewels on Instagram - ${t.alt}`} className="group block overflow-hidden rounded-md bg-sand">
-              <img src={`https://www.shriva.store/images/products/${t.id}.jpg`} alt={t.alt} loading="lazy" width="800" height="800" className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        {tiles.map((p) => (
+          <li key={p.id}>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Open Shriva Jewels on Instagram - ${p.name}`}
+              className="group block overflow-hidden rounded-md bg-sand"
+            >
+              <img
+                src={resolveImageUrl(p.image)}
+                alt={`${p.name} featured on Instagram`}
+                loading="lazy"
+                width="800"
+                height="800"
+                className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
             </a>
           </li>
         ))}
       </ul>
       <div className="mt-8 text-center">
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline"><Instagram size={18} strokeWidth={1.5} aria-hidden="true" />Follow on Instagram</a>
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
+          <Instagram size={18} strokeWidth={1.5} aria-hidden="true" />
+          Follow on Instagram
+        </a>
       </div>
     </section>
   );

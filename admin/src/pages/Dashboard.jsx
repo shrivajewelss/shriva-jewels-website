@@ -56,19 +56,21 @@ export default function Dashboard() {
   }, []);
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case "Pending":
+    switch (String(status || "").toLowerCase()) {
+      case "pending":
         return <Badge variant="amber">Pending</Badge>;
-      case "Confirmed":
+      case "confirmed":
         return <Badge variant="blue">Confirmed</Badge>;
-      case "Processing":
+      case "processing":
         return <Badge variant="indigo">Processing</Badge>;
-      case "Shipped":
+      case "shipped":
         return <Badge variant="purple">Shipped</Badge>;
-      case "Delivered":
+      case "delivered":
         return <Badge variant="emerald">Delivered</Badge>;
-      case "Cancelled":
+      case "cancelled":
         return <Badge variant="red">Cancelled</Badge>;
+      case "returned":
+        return <Badge variant="rose">Returned</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }

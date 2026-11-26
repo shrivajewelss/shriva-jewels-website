@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
 import { formatPrice } from "../utils/currency.js";
 import { trackRemoveFromCart } from "../utils/analytics.js";
+import { resolveImageUrl, resolveFallbackImageUrl } from "../utils/image.js";
 import QuantitySelector from "./QuantitySelector.jsx";
 
 export default function CartItem({ line }) {
@@ -14,11 +15,11 @@ export default function CartItem({ line }) {
     <li className={`flex gap-4 border-b border-line py-5 ${!isAvailable ? "opacity-75" : ""}`}>
       <Link to={`/product/${product.id}`} className="relative shrink-0 overflow-hidden rounded-md">
         <img
-          src={`https://www.shriva.store/${product.image}`}
+          src={resolveImageUrl(product.image)}
           onError={(e) => {
             if (!e.currentTarget.dataset.fallback) {
               e.currentTarget.dataset.fallback = "true";
-              e.currentTarget.src = `/${product.image}`;
+              e.currentTarget.src = resolveFallbackImageUrl(product.image);
             }
           }}
           alt={`${product.name} - Shriva Jewels ${product.category || "jewellery"}`}

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Search, X, ArrowRight } from "lucide-react";
-import { products } from "../data/products.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import { formatPrice } from "../utils/currency.js";
+import { resolveImageUrl, resolveFallbackImageUrl } from "../utils/image.js";
 
 export default function HeaderSearch() {
+  const { products } = useCatalog();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -55,7 +57,7 @@ export default function HeaderSearch() {
         return nameMatch || codeMatch || catMatch;
       })
       .slice(0, 5);
-  }, [term]);
+  }, [term, products]);
 
   const totalMatches = useMemo(() => {
     if (!term) return 0;
@@ -65,7 +67,7 @@ export default function HeaderSearch() {
       const catMatch = p.category && p.category.toLowerCase().includes(term);
       return nameMatch || codeMatch || catMatch;
     }).length;
-  }, [term]);
+  }, [term, products]);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -184,11 +186,11 @@ export default function HeaderSearch() {
                       className="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-sand/60"
                     >
                       <img
-                        src={`https://www.shriva.store/${p.image}`}
+                        src={resolveImageUrl(p.image)}
                         onError={(e) => {
                           if (!e.currentTarget.dataset.fallback) {
                             e.currentTarget.dataset.fallback = "true";
-                            e.currentTarget.src = `/${p.image}`;
+                            e.currentTarget.src = resolveFallbackImageUrl(p.image);
                           }
                         }}
                         alt={`${p.name} - Shriva Jewels ${p.category || "jewellery"}`}
@@ -286,11 +288,11 @@ export default function HeaderSearch() {
                       className="flex w-full items-center gap-3 p-2 text-left hover:bg-sand/60 rounded-lg"
                     >
                       <img
-                        src={`https://www.shriva.store/${p.image}`}
+                        src={resolveImageUrl(p.image)}
                         onError={(e) => {
                           if (!e.currentTarget.dataset.fallback) {
                             e.currentTarget.dataset.fallback = "true";
-                            e.currentTarget.src = `/${p.image}`;
+                            e.currentTarget.src = resolveFallbackImageUrl(p.image);
                           }
                         }}
                         alt={`${p.name} - Shriva Jewels ${p.category || "jewellery"}`}

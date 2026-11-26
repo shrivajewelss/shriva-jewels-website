@@ -18,6 +18,7 @@
     "lint:syntax": "node scripts/check-syntax.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "lucide-react": "^0.462.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

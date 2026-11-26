@@ -1,7 +1,8 @@
-import { categories } from "../data/categories.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import CategoryCard from "./CategoryCard.jsx";
 
 export default function CategorySection() {
+  const { categories } = useCatalog();
   return (
     <section id="collections" className="container-page scroll-mt-28 pt-20" aria-labelledby="cat-h">
       <p className="eyebrow text-center">Shop by category</p>

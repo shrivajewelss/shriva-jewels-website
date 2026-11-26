@@ -1,24 +1,32 @@
 import { supabase } from "./supabase.js";
 import { logAdminActivity } from "./audit.js";
 
+function extractInventory(inventoryField) {
+  if (Array.isArray(inventoryField)) return inventoryField[0] || null;
+  return inventoryField || null;
+}
+
 export async function getProducts({ search = "", categoryId = "", status = "" } = {}) {
   let query = supabase
     .from("products")
     .select(`
       id,
+      category_id,
       name,
       slug,
       description,
       sku,
       price,
+      sale_price,
       status,
       is_featured,
-      category_id,
+      created_by,
+      units,
+      image_url,
       created_at,
       updated_at,
       categories ( id, name, slug ),
-      product_images ( id, image_url, sort_order, alt_text, width, height, format ),
-      inventory ( id, quantity, updated_at )
+      inventory ( id, product_id, quantity, low_stock_threshold, updated_at )
     `)
     .order("created_at", { ascending: false });
 
@@ -36,13 +44,13 @@ export async function getProducts({ search = "", categoryId = "", status = "" } 
   if (error) return { data: [], error: error.message };
 
   const formatted = (data || []).map((p) => {
-    const images = (p.product_images || []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const inv = extractInventory(p.inventory);
     return {
       ...p,
-      images,
-      main_image: images[0]?.image_url || "/images/products/p02.jpg",
-      stock_quantity: p.inventory?.[0]?.quantity ?? 0,
-      inventory_id: p.inventory?.[0]?.id,
+      main_image: p.image_url || "/images/products/p02.jpg",
+      stock_quantity: inv?.quantity ?? p.units ?? 0,
+      low_stock_threshold: inv?.low_stock_threshold ?? 5,
+      inventory_id: inv?.id || null,
     };
   });
 
@@ -54,45 +62,62 @@ export async function getProductById(id) {
     .from("products")
     .select(`
       id,
+      category_id,
       name,
       slug,
       description,
       sku,
       price,
+      sale_price,
       status,
       is_featured,
-      category_id,
+      created_by,
+      units,
+      image_url,
       created_at,
       updated_at,
       categories ( id, name, slug ),
-      product_images ( id, image_url, sort_order, alt_text ),
-      inventory ( id, quantity )
+      inventory ( id, product_id, quantity, low_stock_threshold, updated_at )
     `)
     .eq("id", id)
     .single();
 
   if (error) return { data: null, error: error.message };
 
-  const images = (data.product_images || []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const inv = extractInventory(data.inventory);
   return {
     data: {
       ...data,
-      images,
-      main_image: images[0]?.image_url,
-      stock_quantity: data.inventory?.[0]?.quantity ?? 0,
-      inventory_id: data.inventory?.[0]?.id,
+      main_image: data.image_url || "/images/products/p02.jpg",
+      stock_quantity: inv?.quantity ?? data.units ?? 0,
+      low_stock_threshold: inv?.low_stock_threshold ?? 5,
+      inventory_id: inv?.id || null,
     },
     error: null,
   };
 }
 
-export async function createProduct(productData, images = [], initialStock = 0) {
+export async function createProduct(productData, initialStock = 0) {
+  const sku = (productData.sku || "").trim();
+  if (!sku) {
+    return { data: null, error: "SKU is required by the database schema." };
+  }
+
   const slug =
-    productData.slug ||
+    (productData.slug || "").trim() ||
     productData.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const adminId = sessionData?.session?.user?.id || null;
+
+  const unitsCount = Math.max(0, parseInt(productData.units ?? initialStock, 10) || 0);
+  const salePrice =
+    productData.sale_price !== "" && productData.sale_price != null
+      ? Number(productData.sale_price)
+      : null;
 
   const { data: product, error } = await supabase
     .from("products")
@@ -100,12 +125,16 @@ export async function createProduct(productData, images = [], initialStock = 0) 
       {
         name: productData.name,
         slug,
-        description: productData.description || "",
-        sku: productData.sku || null,
+        description: productData.description || null,
+        sku,
         price: Number(productData.price) || 0,
+        sale_price: salePrice,
         category_id: productData.category_id || null,
-        status: productData.status || "active",
+        status: productData.status || "draft",
         is_featured: Boolean(productData.is_featured),
+        created_by: adminId,
+        units: unitsCount,
+        image_url: productData.image_url || null,
       },
     ])
     .select()
@@ -113,70 +142,56 @@ export async function createProduct(productData, images = [], initialStock = 0) 
 
   if (error) return { data: null, error: error.message };
 
-  // Create initial inventory row
-  await supabase.from("inventory").insert([
+  // Attempt to create initial inventory row (may be restricted if RLS only allows SELECT on inventory)
+  const { error: invErr } = await supabase.from("inventory").insert([
     {
       product_id: product.id,
       quantity: Math.max(0, Number(initialStock) || 0),
     },
   ]);
-
-  // Insert product images (max 5)
-  const imagesToInsert = images.slice(0, 5).map((img, index) => ({
-    product_id: product.id,
-    image_url: typeof img === "string" ? img : img.image_url,
-    sort_order: index,
-    alt_text: product.name,
-  }));
-
-  if (imagesToInsert.length > 0) {
-    await supabase.from("product_images").insert(imagesToInsert);
+  if (invErr) {
+    console.warn("Inventory initial row notice:", invErr.message);
   }
 
-  await logAdminActivity("create_product", { product_id: product.id, name: product.name });
+  await logAdminActivity("create_product", { product_id: product.id, name: product.name }, { entityType: "product", entityId: product.id });
 
   return { data: product, error: null };
 }
 
-export async function updateProduct(id, productData, images = null) {
+export async function updateProduct(id, productData) {
+  const salePrice =
+    productData.sale_price !== "" && productData.sale_price != null
+      ? Number(productData.sale_price)
+      : null;
+
+  const updatePayload = {
+    name: productData.name,
+    slug: productData.slug,
+    description: productData.description || null,
+    sku: productData.sku,
+    price: Number(productData.price),
+    sale_price: salePrice,
+    category_id: productData.category_id || null,
+    status: productData.status,
+    is_featured: Boolean(productData.is_featured),
+    image_url: productData.image_url || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (productData.units !== undefined && productData.units !== "") {
+    updatePayload.units = Math.max(0, parseInt(productData.units, 10) || 0);
+  }
+
   const { data: product, error } = await supabase
     .from("products")
-    .update({
-      name: productData.name,
-      slug: productData.slug,
-      description: productData.description,
-      sku: productData.sku,
-      price: Number(productData.price),
-      category_id: productData.category_id,
-      status: productData.status,
-      is_featured: Boolean(productData.is_featured),
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", id)
     .select()
     .single();
 
   if (error) return { data: null, error: error.message };
 
-  // If images array is provided, synchronize product_images table
-  if (Array.isArray(images)) {
-    // Delete existing images for this product
-    await supabase.from("product_images").delete().eq("product_id", id);
-
-    // Insert updated images (max 5)
-    const imagesToInsert = images.slice(0, 5).map((img, index) => ({
-      product_id: id,
-      image_url: typeof img === "string" ? img : img.image_url,
-      sort_order: index,
-      alt_text: product.name,
-    }));
-
-    if (imagesToInsert.length > 0) {
-      await supabase.from("product_images").insert(imagesToInsert);
-    }
-  }
-
-  await logAdminActivity("update_product", { product_id: id, updates: productData });
+  await logAdminActivity("update_product", { product_id: id, updates: productData }, { entityType: "product", entityId: id });
 
   return { data: product, error: null };
 }
@@ -191,32 +206,30 @@ export async function archiveProduct(id, currentStatus) {
     .single();
 
   if (!error) {
-    await logAdminActivity("archive_product", { product_id: id, new_status: newStatus });
+    await logAdminActivity("archive_product", { product_id: id, new_status: newStatus }, { entityType: "product", entityId: id });
   }
 
   return { data, error: error?.message };
 }
 
 export async function deleteProduct(id, name) {
-  // Check if product is referenced in order_items before deleting
-  const { count: orderItemCount } = await supabase
-    .from("order_items")
-    .select("*", { count: "exact", head: true })
-    .eq("product_id", id);
+  // Check if product is referenced in order_items or stock_movements before deleting
+  const [{ count: orderItemCount }, { count: movementCount }] = await Promise.all([
+    supabase.from("order_items").select("*", { count: "exact", head: true }).eq("product_id", id),
+    supabase.from("stock_movements").select("*", { count: "exact", head: true }).eq("product_id", id),
+  ]);
 
-  if (orderItemCount && orderItemCount > 0) {
+  if ((orderItemCount && orderItemCount > 0) || (movementCount && movementCount > 0)) {
     return {
-      error: `Cannot delete product: It is associated with ${orderItemCount} historical order(s). Please archive it instead to preserve sales history.`,
+      error: `Cannot delete product: It has ${orderItemCount || 0} order item(s) and ${movementCount || 0} stock movement(s). Please archive it instead to preserve history.`,
     };
   }
 
-  // Safe to delete: remove associated inventory and images first
-  await supabase.from("product_images").delete().eq("product_id", id);
   await supabase.from("inventory").delete().eq("product_id", id);
   const { error } = await supabase.from("products").delete().eq("id", id);
 
   if (!error) {
-    await logAdminActivity("delete_product", { product_id: id, name });
+    await logAdminActivity("delete_product", { product_id: id, name }, { entityType: "product", entityId: id });
   }
 
   return { error: error?.message };

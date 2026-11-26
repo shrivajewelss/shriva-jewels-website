@@ -19,7 +19,7 @@ export async function getDashboardStats() {
     // 3. Fetch Inventory
     const { data: inventory, error: invErr } = await supabase
       .from("inventory")
-      .select("product_id, quantity");
+      .select("product_id, quantity, low_stock_threshold");
 
     // 4. Fetch Stock Batches Items for Cost of Goods / Valuation
     const { data: batchItems } = await supabase
@@ -37,19 +37,29 @@ export async function getDashboardStats() {
     const expList = expenses || [];
     const bItemList = batchItems || [];
 
-    // Revenue calculations (from Paid/Delivered/Confirmed orders)
-    const validOrders = orderList.filter((o) => o.order_status !== "Cancelled");
+    // Revenue calculations (from valid non-cancelled orders)
+    const validOrders = orderList.filter(
+      (o) => String(o.order_status || "").toLowerCase() !== "cancelled"
+    );
     const totalRevenue = validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
 
-    const pendingOrders = orderList.filter((o) => o.order_status === "Pending").length;
-    const confirmedOrders = orderList.filter((o) => o.order_status === "Confirmed").length;
-    const deliveredOrders = orderList.filter((o) => o.order_status === "Delivered").length;
+    const pendingOrders = orderList.filter(
+      (o) => String(o.order_status || "").toLowerCase() === "pending"
+    ).length;
+    const confirmedOrders = orderList.filter(
+      (o) => String(o.order_status || "").toLowerCase() === "confirmed"
+    ).length;
+    const deliveredOrders = orderList.filter(
+      (o) => String(o.order_status || "").toLowerCase() === "delivered"
+    ).length;
 
     // Unique customer count
     const uniqueCustomers = new Set(orderList.map((o) => o.phone || o.email).filter(Boolean)).size;
 
     // Inventory Valuation & Low stock count
-    const lowStockCount = invList.filter((i) => (i.quantity ?? 0) <= LOW_STOCK_THRESHOLD).length;
+    const lowStockCount = invList.filter(
+      (i) => (i.quantity ?? 0) <= (i.low_stock_threshold ?? LOW_STOCK_THRESHOLD)
+    ).length;
 
     // Calculate product cost map from batch items (weighted average or latest FIFO batch cost)
     const costMap = {};
@@ -104,7 +114,7 @@ export async function getRevenueTrends() {
   const { data: orders, error } = await supabase
     .from("orders")
     .select("total_amount, created_at, order_status")
-    .neq("order_status", "Cancelled")
+    .neq("order_status", "cancelled")
     .order("created_at", { ascending: true });
 
   if (error) return { monthly: [], weekly: [] };

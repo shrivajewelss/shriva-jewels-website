@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import { formatPrice } from "../utils/currency.js";
 import { trackAddToCart } from "../utils/analytics.js";
+import { resolveImageUrl, resolveFallbackImageUrl } from "../utils/image.js";
 
 export default function ProductCard({ product, priority = false }) {
   const { add } = useCart();
@@ -30,11 +31,11 @@ export default function ProductCard({ product, priority = false }) {
         aria-hidden="true"
       >
         <img
-          src={`https://www.shriva.store/${product.image}`}
+          src={resolveImageUrl(product.image)}
           onError={(e) => {
             if (!e.currentTarget.dataset.fallback) {
               e.currentTarget.dataset.fallback = "true";
-              e.currentTarget.src = `/${product.image}`;
+              e.currentTarget.src = resolveFallbackImageUrl(product.image);
             }
           }}
           alt={`${product.name} - Shriva Jewels ${product.category || "fashion jewellery"}`}
@@ -65,7 +66,12 @@ export default function ProductCard({ product, priority = false }) {
           </Link>
         </h3>
         <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-maroon">{formatPrice(product.price)}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-sm font-medium text-maroon">{formatPrice(product.price)}</p>
+            {product.originalPrice != null && (
+              <p className="text-xs text-muted line-through">{formatPrice(product.originalPrice)}</p>
+            )}
+          </div>
           {!isAvailable && (
             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted">
               Out of stock

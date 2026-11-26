@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
-import { products } from "../data/products.js";
-import { categories } from "../data/categories.js";
+import { useCatalog } from "../context/CatalogContext.jsx";
 import ProductGrid from "../components/ProductGrid.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import LoadingState from "../components/LoadingState.jsx";
 
 /** Shared listing used by /products and /category/:slug (search, category pills, sort, count). */
 export default function Collection({ title, category }) {
+  const { products, categories, loading } = useCatalog();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") || searchParams.get("search") || "";
   const [q, setQ] = useState(urlQuery);
@@ -51,7 +52,7 @@ export default function Collection({ title, category }) {
     if (sort === "asc") out = [...out].sort((a, b) => a.price - b.price);
     if (sort === "desc") out = [...out].sort((a, b) => b.price - a.price);
     return out;
-  }, [q, sort, category]);
+  }, [q, sort, category, products]);
 
   const pill = (active) =>
     `rounded-full border px-4 py-2 text-sm transition-colors ${
@@ -114,7 +115,9 @@ export default function Collection({ title, category }) {
         </div>
       </div>
       <div className="mt-8">
-        {list.length ? (
+        {loading && products.length === 0 ? (
+          <LoadingState label="Loading jewellery collection…" />
+        ) : list.length ? (
           <ProductGrid products={list} eagerCount={4} />
         ) : (
           <EmptyState title="No pieces found">

@@ -8,6 +8,7 @@ export default function Badge({ children, variant = "default", size = "sm" }) {
     indigo: "bg-indigo-50 text-indigo-800 border-indigo-200",
     purple: "bg-purple-50 text-purple-800 border-purple-200",
     red: "bg-red-50 text-red-800 border-red-200",
+    rose: "bg-rose-50 text-rose-800 border-rose-200",
     gray: "bg-gray-100 text-gray-700 border-gray-200",
   };
 

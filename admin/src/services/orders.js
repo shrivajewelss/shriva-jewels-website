@@ -2,20 +2,20 @@ import { supabase } from "./supabase.js";
 import { logAdminActivity } from "./audit.js";
 
 export const ORDER_STATUSES = [
-  { value: "Pending", label: "Pending", color: "amber" },
-  { value: "Confirmed", label: "Confirmed", color: "blue" },
-  { value: "Processing", label: "Processing", color: "indigo" },
-  { value: "Shipped", label: "Shipped", color: "purple" },
-  { value: "Delivered", label: "Delivered", color: "emerald" },
-  { value: "Cancelled", label: "Cancelled", color: "red" },
-  { value: "Returned", label: "Returned", color: "rose" },
+  { value: "pending", label: "Pending", color: "amber" },
+  { value: "confirmed", label: "Confirmed", color: "blue" },
+  { value: "processing", label: "Processing", color: "indigo" },
+  { value: "shipped", label: "Shipped", color: "purple" },
+  { value: "delivered", label: "Delivered", color: "emerald" },
+  { value: "cancelled", label: "Cancelled", color: "red" },
+  { value: "returned", label: "Returned", color: "rose" },
 ];
 
 export const PAYMENT_STATUSES = [
-  { value: "Pending", label: "Pending", color: "amber" },
-  { value: "Paid", label: "Paid", color: "emerald" },
-  { value: "Failed", label: "Failed", color: "red" },
-  { value: "Refunded", label: "Refunded", color: "gray" },
+  { value: "pending", label: "Pending", color: "amber" },
+  { value: "paid", label: "Paid", color: "emerald" },
+  { value: "failed", label: "Failed", color: "red" },
+  { value: "refunded", label: "Refunded", color: "gray" },
 ];
 
 export async function getOrders({ status = "", paymentStatus = "", search = "" } = {}) {
@@ -35,14 +35,15 @@ export async function getOrders({ status = "", paymentStatus = "", search = "" }
       payment_status,
       order_status,
       payment_method,
+      customer_note,
       created_at,
       updated_at,
-      order_items ( id, product_id, quantity, unit_price, subtotal )
+      order_items ( id, order_id, product_id, product_name, sku, quantity, unit_price, subtotal )
     `)
     .order("created_at", { ascending: false });
 
-  if (status) query = query.eq("order_status", status);
-  if (paymentStatus) query = query.eq("payment_status", paymentStatus);
+  if (status) query = query.eq("order_status", status.toLowerCase());
+  if (paymentStatus) query = query.eq("payment_status", paymentStatus.toLowerCase());
   if (search) {
     query = query.or(
       `order_number.ilike.%${search}%,customer_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`
@@ -78,12 +79,14 @@ export async function getOrderById(orderId) {
       payment_status,
       order_status,
       payment_method,
+      customer_note,
       created_at,
       updated_at,
       order_items (
         id,
         order_id,
         product_id,
+        product_name,
         sku,
         quantity,
         unit_price,
@@ -95,37 +98,28 @@ export async function getOrderById(orderId) {
 
   if (error) return { data: null, error: error.message };
 
-  // Fetch product details for the items
-  const productIds = (order.order_items || []).map((i) => i.product_id);
+  // Fetch product details for images / fallback metadata
+  const productIds = (order.order_items || []).map((i) => i.product_id).filter(Boolean);
   let productsMap = {};
 
   if (productIds.length > 0) {
     const { data: prods } = await supabase
       .from("products")
-      .select(`
-        id,
-        name,
-        slug,
-        sku,
-        product_images ( image_url, sort_order )
-      `)
+      .select("id, name, slug, sku, image_url")
       .in("id", productIds);
 
     (prods || []).forEach((p) => {
-      const sortedImgs = (p.product_images || []).sort(
-        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      );
       productsMap[p.id] = {
         name: p.name,
         sku: p.sku,
-        image_url: sortedImgs[0]?.image_url || "/images/products/p02.jpg",
+        image_url: p.image_url || "/images/products/p02.jpg",
       };
     });
   }
 
   const items = (order.order_items || []).map((item) => ({
     ...item,
-    product_name: productsMap[item.product_id]?.name || `Product (${item.product_id})`,
+    product_name: item.product_name || productsMap[item.product_id]?.name || `Product (${item.product_id})`,
     product_image: productsMap[item.product_id]?.image_url || "/images/products/p02.jpg",
     unit_price: Number(item.unit_price) || 0,
     subtotal: Number(item.subtotal) || 0,
@@ -142,6 +136,8 @@ export async function getOrderById(orderId) {
 }
 
 export async function updateOrderStatus(orderId, newStatus, note = "") {
+  const normalizedNewStatus = String(newStatus || "").toLowerCase();
+
   const { data: currentOrder, error: fetchErr } = await supabase
     .from("orders")
     .select("id, order_number, order_status, order_items(product_id, quantity)")
@@ -150,13 +146,13 @@ export async function updateOrderStatus(orderId, newStatus, note = "") {
 
   if (fetchErr) return { error: fetchErr.message };
 
-  const previousStatus = currentOrder.order_status;
+  const previousStatus = String(currentOrder.order_status || "").toLowerCase();
 
   // 1. Update order status
   const { data: updated, error: updateErr } = await supabase
     .from("orders")
     .update({
-      order_status: newStatus,
+      order_status: normalizedNewStatus,
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId)
@@ -165,61 +161,55 @@ export async function updateOrderStatus(orderId, newStatus, note = "") {
 
   if (updateErr) return { error: updateErr.message };
 
-  // 2. Inventory Policy: If transitioning to Cancelled or Returned, restore inventory!
+  // 2. Inventory Policy: If transitioning to cancelled or returned, restore inventory via RPC
   if (
-    (newStatus === "Cancelled" || newStatus === "Returned") &&
-    previousStatus !== "Cancelled" &&
-    previousStatus !== "Returned"
+    (normalizedNewStatus === "cancelled" || normalizedNewStatus === "returned") &&
+    previousStatus !== "cancelled" &&
+    previousStatus !== "returned"
   ) {
     const items = currentOrder.order_items || [];
     for (const item of items) {
       if (!item.product_id || !item.quantity) continue;
 
-      const { data: curInv } = await supabase
-        .from("inventory")
-        .select("id, quantity")
-        .eq("product_id", item.product_id)
-        .single();
-
-      if (curInv) {
-        const prevStock = curInv.quantity ?? 0;
-        const newStock = prevStock + item.quantity;
-
+      const { data: updatedQty, error: rpcErr } = await supabase.rpc("adjust_inventory", {
+        p_product_id: item.product_id,
+        p_delta: item.quantity,
+        p_movement_type: "return",
+        p_note: note || `Order ${currentOrder.order_number} marked ${normalizedNewStatus}`,
+      });
+      if (rpcErr) {
+        console.warn("Inventory restore warning:", rpcErr.message);
+      } else if (updatedQty != null) {
         await supabase
-          .from("inventory")
-          .update({ quantity: newStock, updated_at: new Date().toISOString() })
-          .eq("id", curInv.id);
-
-        const { data: session } = await supabase.auth.getSession();
-        await supabase.from("stock_movements").insert([
-          {
-            product_id: item.product_id,
-            movement_type: newStatus === "Cancelled" ? "cancellation_restored" : "return_restored",
-            previous_stock: prevStock,
-            new_stock: newStock,
-            admin_id: session?.session?.user?.id || null,
-          },
-        ]);
+          .from("products")
+          .update({ units: updatedQty, updated_at: new Date().toISOString() })
+          .eq("id", item.product_id);
       }
     }
   }
 
-  await logAdminActivity("order_status_update", {
-    order_id: orderId,
-    order_number: currentOrder.order_number,
-    from: previousStatus,
-    to: newStatus,
-    note,
-  });
+  await logAdminActivity(
+    "order_status_update",
+    {
+      order_id: orderId,
+      order_number: currentOrder.order_number,
+      from: previousStatus,
+      to: normalizedNewStatus,
+      note,
+    },
+    { entityType: "order", entityId: orderId }
+  );
 
   return { data: updated, error: null };
 }
 
 export async function updatePaymentStatus(orderId, newPaymentStatus) {
+  const normalizedPaymentStatus = String(newPaymentStatus || "").toLowerCase();
+
   const { data, error } = await supabase
     .from("orders")
     .update({
-      payment_status: newPaymentStatus,
+      payment_status: normalizedPaymentStatus,
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId)
@@ -227,10 +217,14 @@ export async function updatePaymentStatus(orderId, newPaymentStatus) {
     .single();
 
   if (!error) {
-    await logAdminActivity("payment_status_update", {
-      order_id: orderId,
-      new_payment_status: newPaymentStatus,
-    });
+    await logAdminActivity(
+      "payment_status_update",
+      {
+        order_id: orderId,
+        new_payment_status: normalizedPaymentStatus,
+      },
+      { entityType: "order", entityId: orderId }
+    );
   }
 
   return { data, error: error?.message };

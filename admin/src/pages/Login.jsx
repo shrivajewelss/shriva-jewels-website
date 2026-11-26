@@ -140,9 +140,9 @@ export default function Login() {
         {/* Security Notice */}
         <div className="border-t border-line/60 pt-4 text-center">
           <p className="text-[11px] text-muted leading-relaxed">
-            Authorized administrative access strictly limited to verified profiles:{" "}
+            Authorized administrative access strictly limited to active verified profiles:{" "}
             <span className="font-medium text-ink">
-              Dhrumi Mistry, Princy Dholu, Aradhana Dholu, Shriva Jewels
+              Shriva Jewels, Aradhana Dholu
             </span>
             . All activities are recorded.
           </p>

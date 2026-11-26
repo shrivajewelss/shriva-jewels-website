@@ -1,17 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
-import { productsById } from "../data/products.js";
+import { useCatalog } from "./CatalogContext.jsx";
 
 const KEY = "shriva.cart.v1";
 export const MAX_QTY = 20;
 const clamp = (n) => Math.min(MAX_QTY, Math.max(1, Math.floor(Number(n) || 1)));
 
-// Only { id, quantity } is stored. Names and prices are always re-read from the catalogue.
-function load() {
+function loadRaw() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
     return Array.isArray(raw)
       ? raw
-          .filter((i) => Boolean(productsById[i?.id]))
+          .filter((i) => typeof i?.id === "string" && i.id.length > 0)
           .map((i) => ({ id: i.id, quantity: clamp(i.quantity) }))
       : [];
   } catch {
@@ -23,8 +22,7 @@ function reducer(items, a) {
   switch (a.type) {
     case "add": {
       const q = clamp(a.quantity ?? 1);
-      const product = productsById[a.id];
-      // Prevent adding unavailable / out-of-stock items to the cart
+      const product = a.productsById?.[a.id];
       if (!product || product.inStock === false) return items;
       const found = items.find((i) => i.id === a.id);
       return found
@@ -49,20 +47,23 @@ function reducer(items, a) {
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const [items, dispatch] = useReducer(reducer, undefined, load);
+  const { productsById, loading: catalogLoading } = useCatalog();
+  const [items, dispatch] = useReducer(reducer, undefined, loadRaw);
 
   useEffect(() => {
+    if (catalogLoading) return;
     try {
-      localStorage.setItem(KEY, JSON.stringify(items));
+      const validItems = items.filter((i) => Boolean(productsById[i.id]));
+      localStorage.setItem(KEY, JSON.stringify(validItems));
     } catch {
       /* storage unavailable */
     }
-  }, [items]);
+  }, [items, productsById, catalogLoading]);
 
   // Keep multiple tabs in sync.
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === KEY) dispatch({ type: "replace", items: load() });
+      if (e.key === KEY) dispatch({ type: "replace", items: loadRaw() });
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -78,12 +79,12 @@ export function CartProvider({ children }) {
       hasUnavailable,
       count: lines.reduce((s, l) => s + l.quantity, 0),
       subtotal: lines.reduce((s, l) => s + (l.product?.price ?? 0) * l.quantity, 0),
-      add: (id, quantity = 1) => dispatch({ type: "add", id, quantity }),
+      add: (id, quantity = 1) => dispatch({ type: "add", id, quantity, productsById }),
       setQuantity: (id, quantity) => dispatch({ type: "setQty", id, quantity }),
       remove: (id) => dispatch({ type: "remove", id }),
       clear: () => dispatch({ type: "clear" }),
     };
-  }, [items]);
+  }, [items, productsById]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

@@ -47,6 +47,21 @@ export default function AdminActivity() {
       ),
     },
     {
+      header: "Entity",
+      accessor: "entity_type",
+      sortable: true,
+      render: (row) => (
+        <div className="text-xs">
+          <span className="font-mono font-medium text-ink">{row.entity_type || "—"}</span>
+          {row.entity_id && (
+            <p className="font-mono text-[10px] text-muted truncate max-w-[140px]">
+              {row.entity_id}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
       header: "Audit Details",
       accessor: "details",
       render: (row) => (

@@ -11,7 +11,12 @@ import {
   validateEmail,
   validateForm,
 } from "../src/utils/validation.js";
-import { products, productsById } from "../src/data/products.js";
+
+const productsById = {
+  "crystal-drop-anklet": { id: "crystal-drop-anklet", code: "1142639", name: "Crystal Drop Anklet", price: 250, inStock: true },
+  "studded-cuff-bracelet": { id: "studded-cuff-bracelet", code: "1149707", name: "Studded Cuff Bracelet", price: 350, inStock: true },
+  "linked-crystal-bracelet": { id: "linked-crystal-bracelet", code: "1254729", name: "Linked Crystal Bracelet", price: 450, inStock: true },
+};
 
 test("Business WhatsApp number and destination URL", () => {
   assert.equal(BUSINESS_WHATSAPP_NUMBER, "919898384604");
@@ -74,9 +79,9 @@ test("Validation: optional PIN code", () => {
 });
 
 test("Generate booking message with multiple products and quantities", () => {
-  const p1 = productsById["1142639-p05"]; // Crystal Drop Anklet, code 1142639, price 200
-  const p2 = productsById["1149707-p11"]; // Studded Cuff Bracelet, code 1149707, price 350
-  const p3 = productsById["1254729-p12"]; // Linked Crystal Bracelet, code 1254729, price 450
+  const p1 = productsById["crystal-drop-anklet"]; // Crystal Drop Anklet, code 1142639, price 250
+  const p2 = productsById["studded-cuff-bracelet"]; // Studded Cuff Bracelet, code 1149707, price 350
+  const p3 = productsById["linked-crystal-bracelet"]; // Linked Crystal Bracelet, code 1254729, price 450
 
   const lines = [
     { product: p1, quantity: 2 },
@@ -117,8 +122,8 @@ test("Generate booking message with multiple products and quantities", () => {
   assert.ok(message.includes(p1.name));
   assert.ok(message.includes(`Product Code: ${p1.code}`));
   assert.ok(message.includes("Quantity: 2"));
-  assert.ok(message.includes("Unit Price: ₹200"));
-  assert.ok(message.includes("Line Subtotal: ₹400"));
+  assert.ok(message.includes("Unit Price: ₹250"));
+  assert.ok(message.includes("Line Subtotal: ₹500"));
 
   // Product 2
   assert.ok(message.includes(p2.name));
@@ -134,13 +139,13 @@ test("Generate booking message with multiple products and quantities", () => {
   assert.ok(message.includes("Unit Price: ₹450"));
   assert.ok(message.includes("Line Subtotal: ₹1,350"));
 
-  // 4. Totals: 2 + 1 + 3 = 6 pieces; 400 + 350 + 1350 = 2100 INR
+  // 4. Totals: 2 + 1 + 3 = 6 pieces; 500 + 350 + 1350 = 2200 INR
   assert.ok(message.includes("*Total Pieces:* 6"));
-  assert.ok(message.includes("*Grand Total:* ₹2,100"));
+  assert.ok(message.includes("*Grand Total:* ₹2,200"));
 });
 
 test("Generate booking message with omitted optional fields", () => {
-  const p = productsById["1142639-p05"]; // Crystal Drop Anklet, code 1142639, price 200
+  const p = productsById["crystal-drop-anklet"]; // Crystal Drop Anklet, code 1142639, price 250
   const lines = [{ product: p, quantity: 1 }];
 
   const customer = {
@@ -163,11 +168,11 @@ test("Generate booking message with omitted optional fields", () => {
   assert.ok(!message.includes("• Additional Message:"));
 
   assert.ok(message.includes("*Total Pieces:* 1"));
-  assert.ok(message.includes("*Grand Total:* ₹200"));
+  assert.ok(message.includes("*Grand Total:* ₹250"));
 });
 
 test("URL encoding round-trip preserves special characters, spaces, and INR symbols", () => {
-  const p = productsById["1142639-p05"];
+  const p = productsById["crystal-drop-anklet"];
   const lines = [{ product: p, quantity: 2 }];
   const customer = {
     name: "Dia & Co.",
@@ -188,8 +193,8 @@ test("URL encoding round-trip preserves special characters, spaces, and INR symb
   assert.ok(decodedText.includes("Dia & Co."));
   assert.ok(decodedText.includes("dia+orders@example.com"));
   assert.ok(decodedText.includes("100% authentic silver & stones / handle with care! #1"));
-  assert.ok(decodedText.includes("₹200"));
-  assert.ok(decodedText.includes("₹400"));
+  assert.ok(decodedText.includes("₹250"));
+  assert.ok(decodedText.includes("₹500"));
 });
 
 test("Copy to clipboard fallback does not throw in headless environment", async () => {
